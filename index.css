@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Chakra Petch", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #05090f;
+  color: #dbeafe;
+  font-family: var(--font-display);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  image-rendering: auto;
+}
+
+/* ---------- animations ---------- */
+@keyframes ccPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes ccBlink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+@keyframes ccRise {
+  from {
+    transform: translateY(10px) scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes ccPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes ccScan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(400%);
+  }
+}
+@keyframes ccGlowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 14px 2px currentColor;
+  }
+}
+@keyframes ccSweep {
+  0% {
+    background-position: -140% 0;
+  }
+  100% {
+    background-position: 240% 0;
+  }
+}
+
+.cc-rise {
+  animation: ccRise 0.22s cubic-bezier(0.22, 1.2, 0.4, 1) both;
+}
+.cc-pop {
+  animation: ccPop 0.3s cubic-bezier(0.22, 1.4, 0.4, 1) both;
+}
+.cc-blink {
+  animation: ccBlink 0.42s steps(1, end) infinite;
+}
+.cc-pulse {
+  animation: ccPulse 1.1s ease-in-out infinite;
+}
+.cc-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(120, 220, 255, 0.09), transparent);
+  height: 25%;
+  animation: ccScan 4.5s linear infinite;
+  pointer-events: none;
+}
+
+.cc-panel {
+  background: linear-gradient(180deg, rgba(11, 20, 32, 0.94), rgba(6, 12, 20, 0.96));
+  border: 1px solid rgba(90, 190, 230, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(160, 230, 255, 0.08),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.cc-btn {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.09s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.cc-btn:active {
+  transform: scale(0.96);
+}
+.cc-btn:hover {
+  filter: brightness(1.12);
+}
+
+.cc-grid-bg {
+  background-image:
+    linear-gradient(rgba(70, 180, 220, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 180, 220, 0.055) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.cc-shadow-text {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 200, 235, 0.28);
+  border-radius: 99px;
+}
