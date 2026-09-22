@@ -1,7 +1,7 @@
 {
-  "name": "carecallwardrush",
+  "name": "react-vite-tailwind",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,33 +10,19 @@
   },
   "dependencies": {
     "clsx": "2.1.1",
-    "express": "^5.2.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.17",
     "@types/node": "22.19.17",
-    "@types/react": "18.2.7",
-    "@types/react-dom": "18.2.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",
     "vite-plugin-singlefile": "2.3.0"
-  },
-  "description": "An arcade nurse-call response game themed around a CareCall hospital nurse call system. Patients hit their call buttons, the annunciator lights up, and you sprint the ward to answer every call before the timer runs out.",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/famboni/carecallwardrush.git"
-  },
-  "keywords": [],
-  "author": "Tony",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/famboni/carecallwardrush/issues"
-  },
-  "homepage": "https://famboni.github.io/CareCallWardRush/"
+  }
 }

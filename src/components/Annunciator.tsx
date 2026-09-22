@@ -83,7 +83,7 @@ export default function Annunciator({
           <span className="text-[8px] font-bold leading-none tracking-widest text-cyan-300/80">CALLS</span>
           <span className="font-mono text-[16px] leading-tight text-white">{calls.length}</span>
         </div>
-        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+        <div style={{ touchAction: "pan-x" }} className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
           {calls.length === 0 ? (
             <span className="self-center px-1 text-[10px] font-bold tracking-widest text-emerald-400">ALL CLEAR</span>
           ) : (

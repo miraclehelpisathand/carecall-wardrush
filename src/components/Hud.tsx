@@ -35,7 +35,7 @@ export default function Hud({
 
   if (compact) {
     return (
-      <div className="cc-panel flex shrink-0 items-center gap-2 rounded-lg px-2 py-1">
+      <div className="cc-panel flex min-w-0 flex-1 flex-wrap items-center justify-end gap-x-2 gap-y-1 rounded-lg px-2 py-1">
         <div className="flex flex-col">
           <span className="font-mono text-[15px] leading-none text-amber-300">{hud.score.toLocaleString()}</span>
           <span className="mt-0.5 text-[8px] tracking-widest text-slate-500">

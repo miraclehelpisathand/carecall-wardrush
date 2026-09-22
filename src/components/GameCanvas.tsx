@@ -8,6 +8,7 @@ interface Props {
   engine: Engine;
   running: boolean;
   ambient?: boolean;
+  handheld?: boolean;
   onHud: (h: Hud) => void;
   onPauseKey: () => void;
 }
@@ -23,17 +24,26 @@ const MOVE_KEYS: Record<string, [number, number]> = {
   d: [1, 0],
 };
 
-export default function GameCanvas({ engine, running, ambient = false, onHud, onPauseKey }: Props) {
+export default function GameCanvas({
+  engine,
+  running,
+  ambient = false,
+  handheld = false,
+  onHud,
+  onPauseKey,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stickRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const runRef = useRef(running);
   const ambientRef = useRef(ambient);
+  const handheldRef = useRef(handheld);
   const hudRef = useRef(onHud);
   const pauseRef = useRef(onPauseKey);
   runRef.current = running;
   ambientRef.current = ambient;
+  handheldRef.current = handheld;
   hudRef.current = onHud;
   pauseRef.current = onPauseKey;
 
@@ -213,7 +223,13 @@ export default function GameCanvas({ engine, running, ambient = false, onHud, on
 
       // smooth follow camera (clamped; centres the ward when it all fits)
       const tx = vw >= WORLD_W ? WORLD_W / 2 : Math.min(Math.max(engine.player.x, vw / 2), WORLD_W - vw / 2);
-      const ty = vh >= WORLD_H ? WORLD_H / 2 : Math.min(Math.max(engine.player.y, vh / 2), WORLD_H - vh / 2);
+      // on phones the HUD floats over the top, so bias the view downward a touch
+      // to keep the nurse clear of it
+      const bias = handheldRef.current && vh < WORLD_H ? vh * 0.1 : 0;
+      const ty =
+        vh >= WORLD_H
+          ? WORLD_H / 2
+          : Math.min(Math.max(engine.player.y - bias, vh / 2), WORLD_H - vh / 2);
       const k = 1 - Math.exp(-9 * dt);
       camX += (tx - camX) * k;
       camY += (ty - camY) * k;
@@ -242,6 +258,8 @@ export default function GameCanvas({ engine, running, ambient = false, onHud, on
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      window.removeEventListener("orientationchange", resize);
+      window.visualViewport?.removeEventListener("resize", resize);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);

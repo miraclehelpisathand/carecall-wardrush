@@ -6,11 +6,15 @@ import type { ScoreEntry } from "../hooks/useHighScores";
 
 export function Logo({ small = false }: { small?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#00AEEF] to-[#0E6E9A] shadow-[0_0_22px_rgba(0,174,239,0.45)]">
-        <span className="text-2xl font-bold leading-none text-white">✚</span>
+    <div className={`flex items-center ${small ? "gap-2" : "gap-3"}`}>
+      <div
+        className={`relative shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#00AEEF] to-[#0E6E9A] shadow-[0_0_22px_rgba(0,174,239,0.45)] ${
+          small ? "flex h-9 w-9" : "flex h-11 w-11"
+        }`}
+      >
+        <span className={`font-bold leading-none text-white ${small ? "text-xl" : "text-2xl"}`}>✚</span>
       </div>
-      <div className={`font-bold tracking-wide text-white ${small ? "text-xl" : "text-3xl"}`}>
+      <div className={`font-bold tracking-wide text-white ${small ? "text-lg" : "text-2xl sm:text-3xl"}`}>
         Care<span className="text-[#00AEEF]">Call</span>{" "}
         <span className="text-white">Ward</span>
         <span className="text-[#00AEEF]">Rush</span>
@@ -22,12 +26,23 @@ export function Logo({ small = false }: { small?: boolean }) {
 export function Overlay({ children, dim = true }: { children: React.ReactNode; dim?: boolean }) {
   return (
     <div
-      style={{ touchAction: "pan-y" }}
-      className={`absolute inset-0 z-30 flex items-center justify-center overflow-y-auto p-3 ${
+      style={{
+        touchAction: "pan-y",
+        paddingTop: "max(12px, env(safe-area-inset-top))",
+        paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+        paddingLeft: "max(10px, env(safe-area-inset-left))",
+        paddingRight: "max(10px, env(safe-area-inset-right))",
+      }}
+      className={`absolute inset-0 z-30 overflow-y-auto overscroll-contain ${
         dim ? "bg-[#03070d]/85 backdrop-blur-sm" : ""
       }`}
     >
-      {children}
+      {/*
+        The inner wrapper grows to the content height, so a panel taller than the
+        viewport is centered inside that grown box — no clipped top edge, which is
+        what plain flex centering on a scroll container does.
+      */}
+      <div className="flex min-h-full w-full items-center justify-center">{children}</div>
     </div>
   );
 }
@@ -93,9 +108,9 @@ export function StartScreen({
   return (
     <Overlay>
       <div className="w-full max-w-4xl">
-        <div className="cc-panel cc-scan relative overflow-hidden rounded-2xl p-4 sm:p-6">
+        <div className="cc-panel cc-scan relative overflow-hidden rounded-2xl p-3 sm:p-6">
           <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="relative flex flex-col gap-4">
+          <div className="relative flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <Logo />
               <div className="text-right text-[10px] leading-tight tracking-widest text-slate-500">
@@ -105,21 +120,25 @@ export function StartScreen({
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+            {/* two columns from 640px so a landscape phone sees START without scrolling */}
+            <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr] sm:gap-4">
               <div className="flex flex-col gap-3">
-                <p className="text-sm leading-relaxed text-slate-300">
+                <p className="cc-short-hide hidden text-sm leading-relaxed text-slate-300 sm:block">
                   You're the nurse on shift. Calls light up the <span className="text-cyan-300">annunciator</span> and the
                   over-door lamps. Sprint to the room, hold at the call point to reset it — before the timer runs out.
                   Miss a call and you lose a life. Clear every call, then return to the{" "}
                   <span className="text-emerald-300">nurses station</span> to end the shift.
                 </p>
-                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                <p className="cc-short-only text-[12px] leading-snug text-slate-400">
+                  Answer every call before it times out, then return to the station to finish the shift.
+                </p>
+                <div className="cc-short-hide grid grid-cols-1 gap-1.5 sm:grid-cols-2">
                   <LegendTile kind="emergency" desc="Highest priority. Very short fuse." />
                   <LegendTile kind="patient" desc="Standard bedside call." />
                   <LegendTile kind="assist" desc="Colleague needs a hand." />
                   <LegendTile kind="keys" desc="Grab keys from the station first." />
                 </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-400 sm:grid-cols-4">
+                <div className="cc-short-hide grid grid-cols-2 gap-1.5 text-[11px] text-slate-400 sm:grid-cols-4">
                   <div className="rounded-lg bg-black/40 px-2 py-1.5">
                     <div className="font-bold text-cyan-200">MOVE</div>WASD / Arrows / drag left
                   </div>
@@ -133,11 +152,23 @@ export function StartScreen({
                     <div className="font-bold text-rose-300">AVOID</div>Rolling beds &amp; residents
                   </div>
                 </div>
-                <div className="rounded-lg border border-amber-400/20 bg-amber-500/5 px-2.5 py-2 text-[11px] leading-snug text-amber-200/90">
+                <div className="cc-short-only flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                  <span>
+                    <b className="text-cyan-200">MOVE</b> drag
+                  </span>
+                  <span>
+                    <b className="text-cyan-200">DASH</b> tap
+                  </span>
+                  <span>
+                    <b className="text-rose-300">AVOID</b> beds &amp; residents
+                  </span>
+                  <span className="text-slate-500">Esc = pause</span>
+                </div>
+                <div className="cc-short-hide rounded-lg border border-amber-400/20 bg-amber-500/5 px-2.5 py-2 text-[11px] leading-snug text-amber-200/90">
                   <b>Later shifts:</b> 🍽️ meal calls need a tray from the pantry (slows you down) · 🚻 toilet assists must be
                   escorted to the WC · 🔑 key calls need the key ring · lights go down on evening &amp; night shifts.
                 </div>
-                <div className="rounded-lg border border-yellow-400/25 bg-yellow-400/5 px-2.5 py-2 text-[11px] leading-snug text-yellow-200/90">
+                <div className="cc-short-hide rounded-lg border border-yellow-400/25 bg-yellow-400/5 px-2.5 py-2 text-[11px] leading-snug text-yellow-200/90">
                   <b>🧹 Accidents:</b> if an escort doesn't reach the WC in time there's a spill. Grab the{" "}
                   <b>mop from the nurses station</b> and stand over it to clean up for points — sprint through an
                   uncleaned spill and you'll slip. Leftover spills cost you shift bonus.
@@ -376,12 +407,15 @@ export function GameOverScreen({
   );
 }
 
-export function Banner({ hud }: { hud: Hud }) {
+export function Banner({ hud, offset = 8 }: { hud: Hud; offset?: number }) {
   const brief = hud.phase === "briefing";
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col items-center gap-1.5 p-2">
+    <div
+      className="pointer-events-none absolute inset-x-0 z-[21] flex flex-col items-center gap-1.5 px-2"
+      style={{ top: offset }}
+    >
       {brief && (
-        <div className="cc-pop mt-6 flex flex-col items-center">
+        <div className="cc-pop flex flex-col items-center">
           <div className="text-[11px] tracking-[0.35em] text-cyan-300">{hud.wardName}</div>
           <div className="text-5xl font-bold tracking-wider text-white cc-shadow-text">SHIFT {hud.level}</div>
           <div className="mt-1 rounded-full bg-black/50 px-3 py-1 text-[11px] tracking-[0.25em] text-amber-300">

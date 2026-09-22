@@ -9,13 +9,21 @@
   color-scheme: dark;
 }
 
-html,
-body,
-#root {
+html {
+  width: 100%;
   height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
+/* body is pinned so the mobile browser can never rubber-band or scroll the page */
 body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   margin: 0;
   background: #05090f;
   color: #dbeafe;
@@ -25,7 +33,39 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
-  touch-action: none;
+  /* NOT `none`: ancestors restrict descendants, so `none` here would silently
+     kill scrolling inside the menus and the call list. `manipulation` blocks
+     double-tap zoom while leaving pan gestures to each element. */
+  touch-action: manipulation;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ---------- viewport-driven compaction ----------
+   Phones play in landscape (~320-430px tall). Anything long is dropped so the
+   whole screen fits with no scrolling; tall desktop windows keep everything. */
+/* No base `display` on .cc-short-hide — an unlayered rule here would beat
+   Tailwind's `hidden`/`sm:block` and force the block visible at every width. */
+@media (max-height: 560px) {
+  .cc-short-hide {
+    display: none !important;
+  }
+}
+.cc-short-only {
+  display: none;
+}
+/* short screens (landscape phones) and narrow columns both swap to the compact copy */
+@media (max-height: 560px), (max-width: 639px) {
+  .cc-short-only {
+    display: block !important;
+  }
 }
 
 canvas {
@@ -100,6 +140,28 @@ canvas {
   }
   100% {
     background-position: 240% 0;
+  }
+}
+@keyframes ccRotatePhone {
+  0%,
+  22% {
+    transform: rotate(0deg);
+  }
+  60%,
+  82% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+.cc-rotate-phone {
+  animation: ccRotatePhone 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  transform-origin: 50% 50%;
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .cc-panel {
+    font-size: 0.94em;
   }
 }
 
