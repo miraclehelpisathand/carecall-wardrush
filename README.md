@@ -186,3 +186,6 @@ src/
 No licence file is included yet — add one (MIT is the usual default for a project like this) before making the repository public, otherwise the default is "all rights reserved".
 
 > **Note:** this is an unaffiliated fan/demo project. If "Miracle Electronics" or "CareCall" are real trademarks belonging to someone else, get permission or rename before publishing it publicly.
+>
+> Deployment test
+> ''
