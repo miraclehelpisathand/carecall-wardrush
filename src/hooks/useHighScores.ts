@@ -1,27 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  addLocalScore, createRunId, normalizeName, readLocalScores, SCORE_KEY, SCORE_LIMIT, validScore, type ScoreEntry,
+} from "../lib/highScores";
 
-export interface ScoreEntry {
-  name: string;
-  score: number;
-  level: number;
-  date: number;
-}
+export type { ScoreEntry } from "../lib/highScores";
 
-const KEY = "carecall.scores.v1";
 const PROGRESS = "carecall.progress.v1";
-const MAX = 8;
-
-function load(): ScoreEntry[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as ScoreEntry[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((s) => typeof s.score === "number").sort((a, b) => b.score - a.score).slice(0, MAX);
-  } catch {
-    return [];
-  }
-}
 
 export function loadProgress(): number {
   try {
@@ -42,29 +26,40 @@ export function saveProgress(level: number) {
 }
 
 export function useHighScores() {
-  const [scores, setScores] = useState<ScoreEntry[]>([]);
+  const [scores, setScores] = useState<ScoreEntry[]>(readLocalScores);
+  const scoresRef = useRef(scores);
 
   useEffect(() => {
-    setScores(load());
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== SCORE_KEY && event.key !== null) return;
+      const next = readLocalScores();
+      scoresRef.current = next;
+      setScores(next);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const submit = useCallback((name: string, score: number, level: number) => {
-    const next = [...load(), { name: name.slice(0, 8).toUpperCase() || "NURSE", score, level, date: Date.now() }]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX);
+  const submit = useCallback((name: string, score: number, level: number, runId = createRunId()) => {
+    if (!validScore(score, level)) throw new Error("This score is not valid.");
+    const entry = scoresRef.current.find((item) => item.id === runId) || {
+      id: runId, name: normalizeName(name), score, level, date: Date.now(),
+    };
+    const next = addLocalScore(scoresRef.current, entry);
+    let localPersisted = false;
     try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
+      localStorage.setItem(SCORE_KEY, JSON.stringify(next));
+      localPersisted = true;
+    } catch { /* Scores remain usable in memory when browser storage is blocked. */ }
+    scoresRef.current = next;
     setScores(next);
+    return { localRanked: next.some((item) => item.id === runId), localPersisted };
   }, []);
 
   const qualifies = useCallback((score: number) => {
     if (score <= 0) return false;
-    const cur = load();
-    return cur.length < MAX || score > (cur[cur.length - 1]?.score ?? 0);
-  }, []);
+    return scores.length < SCORE_LIMIT || score >= (scores[scores.length - 1]?.score ?? 0);
+  }, [scores]);
 
   const best = scores.length ? scores[0].score : 0;
 

@@ -1,8 +1,170 @@
 # CareCall: Ward Rush
 
-An arcade nurse-call response game themed around a **CareCall** hospital nurse call system. Patients hit their call buttons, the annunciator lights up, and you sprint the ward to answer every call before the timer runs out.
+An arcade nurse-call response game themed around the **CareCall** hospital nurse call system. Patients hit their call buttons, the annunciator lights up, and you sprint the ward to answer every call before the timer runs out.
 
 Built with React 19, TypeScript, Vite and Tailwind CSS v4. The simulation and all art run on a single `<canvas>` — no game engine, no sprite assets.
+
+## Release v1.0.0
+
+- **50 shifts** of procedurally scaled difficulty, 3 lives, combo scoring up to ×5, local top-8 high-score table and shift-unlock progress.
+- **Four call types** on the annunciator — emergency (red), patient (green), nurse assist (amber), keys (purple) — each with its own timer, sound and lamp behaviour.
+- **Task calls**: meal trays from the pantry slow you down; toilet assists need a walking-pace escort to the WC with a live countdown.
+- **Accident system**: a timed-out escort leaves a spill — grab the mop at the station, scrub it clean for points, or slip on it mid-sprint.
+- **A living ward**: patients doze in every bed, sit up and wave when calling, and shout lines (*"I'VE FALLEN!"*, *"CUP OF TEA?"*); residents wander the halls; beds roll loose down the corridors; evening and night shifts dim the lights.
+- **Juice**: screen shake, particle bursts, hit-flash, floating score text, combo pops and a full WebAudio synth SFX kit — no audio files.
+- **Responsive by detection**: viewport + pointer classification drives desktop side-rail vs mobile overlay HUD, a portrait-phone rotate gate that pauses the shift, safe-area insets, and a zoomed follow camera on small screens. Fullscreen + orientation lock attempted on handhelds.
+- **Deployment**: single-file production build (`dist/index.html`), GitHub Actions → Pages workflow with relative base (works at `/<repo>/` and site root), and a documented WordPress/Divi iframe embed path.
+
+---
+
+## Quick start
+
+Install Node.js 20 (use the `.nvmrc` if you have nvm), then:
+
+```bash
+npm install
+npm run dev      # dev server at http://localhost:5173
+npm run build    # production build → dist/
+npm run preview  # preview the production build locally
+```
+
+## Downloadable GitHub package
+
+To create a clean ZIP that can be uploaded to GitHub:
+
+```bash
+node scripts/package-release.mjs
+```
+
+This writes:
+
+```text
+public/downloads/carecall-ward-rush-github.zip
+public/downloads/SHA256SUMS.txt
+public/downloads/package-manifest.json
+```
+
+The ZIP contains the source code, GitHub Pages workflow, tests, and setup guides.
+It excludes `node_modules`, `dist`, caches, and private local environment files.
+
+For step-by-step upload instructions, see [UPLOAD-TO-GITHUB.md](UPLOAD-TO-GITHUB.md).
+
+## Shared High Scores
+
+The existing **My Device** leaderboard keeps the top eight scores in the
+player's browser. An optional **Everyone** leaderboard now supports scores
+shared across players using Supabase. GitHub Pages continues hosting the game;
+Supabase stores the scores. Online publishing is opt-in and never replaces
+local scores.
+
+Follow [the shared leaderboard setup guide](docs/HIGH_SCORES.md) to run the
+included SQL migration, enable anonymous guest sign-ins, and set the two public
+connection variables in GitHub Actions. Without those settings the game works
+in local-only mode. No live database is included or created automatically.
+
+## Deploying to GitHub Pages
+
+You can deploy from any branch — `main` is the convention used here. Push once, GitHub Actions handles the rest.
+
+### 1. Create the repo on GitHub
+
+- **Normal URL (`/<user>.github.io/<repo>/`)** — create a new repository with any name (e.g. `carecall-ward-rush`).
+- **Shortest URL (`/<user>.github.io/`)** — name the repo **`<username>.github.io`** and the game lives at the site root.
+
+Then commit and push this folder:
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/<username>/<repo>.git
+git push -u origin main
+```
+
+### 2. Turn on Pages
+
+On GitHub: **Settings → Pages → Build and deployment → Source → GitHub Actions**.
+
+If the Actions tab asks you to enable workflows, click that button.
+
+### 3. Wait for the deploy
+
+Open the **Actions** tab — the workflow called "Deploy to GitHub Pages" is configured to run on every push to `main`. When it finishes, your site is at:
+
+- `https://<username>.github.io/<repo>/` (named repo), or
+- `https://<username>.github.io/` (named `<username>.github.io`)
+
+`vite-plugin-singlefile` inlines all JS/CSS into a single `dist/index.html`, so there are no hashed asset URLs to break on a `/repo/` subpath.
+
+### Troubleshooting
+
+- **Page is blank** — wait 30–60 seconds then hard-refresh; check Actions for a failed build.
+- **Build fails in Actions** — open the failed job's log; usually it’s a Node version mismatch, fixed by `nvm use` or by setting `node-version: 20` in `.github/workflows/deploy.yml`.
+- **Pages still says "Your site is ready"** — that's the default Pages welcome. You haven't yet pointed Pages at GitHub Actions (Settings → Pages → Source).
+- **Local `npm install` warns about peer deps** — ignored; harmless with the versions pinned in `package.json`.
+
+### Deploying to other hosts
+
+Run `npm run build` and upload the contents of `dist/` to Netlify, Vercel, Cloudflare Pages, S3 or any static host. No server-side runtime needed.
+
+---
+
+## Embedding in WordPress (Divi code module)
+
+**Yes — via an iframe.** Don't paste the built HTML directly into a Divi code module: the game ships CSS that pins `body` to the viewport (`position: fixed`), so injected raw it would hijack and freeze your whole WordPress page. An `<iframe>` gives the game its own document and keeps it fully isolated.
+
+### Recommended: iframe your GitHub Pages deploy
+
+Deploy to Pages as described above, then in Divi add a **Code module** and paste:
+
+```html
+<iframe
+  src="https://YOUR-USERNAME.github.io/YOUR-REPO/"
+  title="CareCall Ward Rush"
+  loading="lazy"
+  allow="fullscreen; autoplay"
+  style="display:block; width:100%; height:min(100svh, 720px); min-height:420px; border:0; background:#05090f;">
+</iframe>
+```
+
+Replace the `src` with your live Pages URL. The game stays in sync with every push to `main` — you never touch WordPress again.
+
+For a **full-bleed "the game IS the page"** experience: create the page with the **Blank** template, one full-width section with a single Code module, and set the iframe height to `100svh` (drop the `min()` cap).
+
+### Alternative: self-host on your own domain
+
+If you'd rather serve it from WordPress itself (same domain, no external request):
+
+1. Run `npm run build` locally.
+2. Upload `dist/index.html` to `wp-content/uploads/carecall/index.html` via **cPanel File Manager or (S)FTP**. The WordPress **Media Library refuses `.html` uploads**, so don't try it there.
+3. Point the iframe `src` at `https://your-site.com/wp-content/uploads/carecall/index.html`.
+
+Because the whole game is one self-contained HTML file, that single upload is the entire deployment.
+
+### Gotchas
+
+- `allow="fullscreen"` is what lets the phone's fullscreen/orientation trick work inside the embed; without it the request is silently refused and the game simply runs inside the frame.
+- Portrait phones will show the rotate-the-device gate inside the embed — that's intended behaviour.
+- Security plugins (Wordfence, etc.) sometimes flag iframes to external domains. If the frame comes up blank, whitelist your Pages domain.
+- Device scores and progress are stored per-visitor in their browser (`localStorage`), scoped to the domain the game actually runs from. If the optional Supabase leaderboard is configured, published scores are shared by everyone using that Supabase project, including the Divi embed.
+
+---
+
+## How the build/deploy pipeline works
+
+```
+push to main
+  → .github/workflows/deploy.yml
+    → npm install
+    → npm run build → dist/
+    → touch dist/.nojekyll  + cp dist/index.html dist/404.html  (SPA + GitHub Pages fix)
+    → upload dist/ as a Pages artifact
+    → pages environment deploy
+    → https://<user>.github.io/<repo>/
+```
+
+`.nojekyll` tells GitHub Pages to serve the `dist/` folder as-is (instead of trying to run it through Jekyll, which breaks modern SPAs). Copying `index.html → 404.html` makes direct deep-links fall back to the SPA.
 
 ---
 
@@ -32,6 +194,8 @@ You are the nurse on shift. Calls appear on the **annunciator** panel and on the
 
 Patients occupy every bed. They doze when settled, sit up and wave when they need you, and speak up — *"NURSE?"*, *"I'VE FALLEN!"*, *"I NEED THE LOO!"* — with a *"THANK YOU!"* once you answer.
 
+A phone/tablet held in **portrait** is blocked by a rotate-the-device gate until you turn it; the shift is paused while you rotate so calls can't expire.
+
 ### Scoring
 
 Score scales with call priority, a speed bonus for time remaining, and a **combo multiplier** up to ×5 that resets on a missed call. Clearing a shift pays a completion bonus, a bonus per remaining life, and a perfect-shift bonus for zero misses. Every 10th shift grants an extra life. Top eight runs are saved to a local high-score table.
@@ -46,117 +210,13 @@ Score scales with call priority, a speed bonus for time remaining, and a **combo
 | Mute | `M` | Speaker button in the HUD |
 | Confirm / restart | `Enter` | On-screen buttons |
 
-## Running locally
-
-```bash
-npm install
-npm run dev      # dev server
-npm run build    # production build -> dist/
-npm run preview  # preview the production build
-```
-
-## Deploying
-
-`vite-plugin-singlefile` inlines all JavaScript and CSS into a **single self-contained `dist/index.html`**. There are no hashed asset URLs, so there is no `base` path to configure — the file works from any subdirectory, a file:// URL, or a USB stick.
-
-### GitHub Pages — full walkthrough
-
-A workflow is already in the repo at `.github/workflows/deploy.yml`. You do **not** need to configure Vite's `base` path: the build inlines all JS and CSS into one `index.html`.
-
-**0. One-time prerequisites**
-
-- A [GitHub](https://github.com/signup) account
-- [Git](https://git-scm.com/downloads) installed
-- [Node.js 20+](https://nodejs.org/) installed (`node -v` to check)
-
-**1. Create an empty GitHub repository**
-
-1. Open [github.com/new](https://github.com/new)
-2. Repository name: anything you like, e.g. `carecall-ward-rush`
-3. Visibility: **Public** (required on a free account for other people to play — GitHub Pages on private repos needs a paid plan)
-4. Leave “Add a README” **unchecked** so the repo is empty
-5. Click **Create repository**
-
-**2. Put this project in that repo**
-
-In a terminal, from the project folder:
-
-```bash
-git init
-git add .
-git commit -m "CareCall Ward Rush"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git push -u origin main
-```
-
-Replace `YOUR_USERNAME` and `YOUR_REPO` with the values from step 1. If GitHub asks you to sign in, use a [Personal Access Token](https://github.com/settings/tokens) or GitHub CLI — not your account password.
-
-**3. Turn on GitHub Pages**
-
-1. On the repo page: **Settings → Pages**
-2. Under **Build and deployment → Source**, choose **GitHub Actions**
-3. That’s it — do not pick “Deploy from a branch”
-
-**4. Wait for the first deploy**
-
-1. Open the **Actions** tab
-2. You should see a run called **Deploy to GitHub Pages**
-3. Wait until both **build** and **deploy** are green (about 1–2 minutes)
-4. If it failed before you flipped the Pages source, click **Re-run all jobs**
-
-**5. Play it**
-
-The live URL is:
-
-```
-https://YOUR_USERNAME.github.io/YOUR_REPO/
-```
-
-Share that link. Anyone with it can play in the browser — no install.
-
-**Updating later**
-
-Change the code, then:
-
-```bash
-git add .
-git commit -m "Describe the change"
-git push
-```
-
-Actions rebuilds and republishes automatically.
-
-**If the Actions run fails**
-
-- **“Pages is not enabled”** — you skipped step 3. Enable Pages, then re-run the workflow.
-- **Permission / environment errors** — Settings → Actions → General → Workflow permissions → **Read and write**. Then Settings → Environments and confirm `github-pages` exists (it is created the first time Pages is enabled).
-- **Build error** — open the failed job’s log. The most common cause is a TypeScript error in the last change you pushed.
-
-**Optional: a shorter URL**
-
-Settings → Pages → Custom domain, then add a CNAME at your DNS provider. Not required to share the game.
-
-### Anywhere else
-
-Run `npm run build` and drop `dist/index.html` onto Netlify, Vercel, Cloudflare Pages, S3, or any static host.
-
-## Branding
-
-The Miracle Electronics logo appears in exactly one place: on the **plaque across the front of the nurses station desk** inside the ward. It sits on a white sign board, so the original navy-and-cyan artwork is used at its true colours with no reversing or recolouring. There is no Miracle Electronics text or imagery anywhere in the surrounding UI.
-
-To swap in different artwork, replace this file — it is picked up automatically and scaled to fit the plaque:
-
-```
-public/brand/miracle-electronics.svg   (preferred — scales cleanly)
-public/brand/miracle-electronics.png   (transparent or white background)
-```
-
-An identical copy is inlined as a data URI in `src/game/brand.ts`, used as a fallback so the single-file build still renders the plaque when `dist/index.html` is served on its own.
+---
 
 ## Project structure
 
 ```
+public/
+  brand/                  drop the real logo here (logo.svg or logo.png) — see Brand section
 src/
   game/
     constants.ts   call types, tuning values, theme palette
@@ -165,16 +225,43 @@ src/
     engine.ts      simulation: player, calls, beds, residents, scoring
     render.ts      canvas rendering (pre-rendered ward + dynamic layer)
     audio.ts       WebAudio synthesised sound effects
+    brand.ts       brand artwork loader with placeholder fallback
   components/
-    GameCanvas.tsx game loop, input handling, follow camera
-    Annunciator.tsx call panel (desktop + compact mobile variants)
-    Hud.tsx        score, lives, combo, dash, shift progress
-    Screens.tsx    start, pause, level complete, game over
+    GameCanvas.tsx     game loop, input handling, follow camera
+    Annunciator.tsx    call panel (desktop + compact mobile variants)
+    Hud.tsx            score, lives, combo, dash, shift progress
+    Screens.tsx        start, pause, level complete, game over
+    LandscapeGate.tsx  portrait-phone gate, blocks the app
   hooks/
-    useHighScores.ts  localStorage high scores + level progress
+    useDevice.ts       viewport / touch / orientation classification
+    useHighScores.ts   localStorage high scores + level progress
+    useSharedLeaderboard.ts  optional shared leaderboard loading
+  lib/
+    highScores.ts      score validation, sorting, and run identifiers
+    leaderboard.ts     Supabase guest sessions and score API
+  utils/cn.ts          Tailwind class combiner
+index.html             HTML entry — viewport meta + PWA-ish tags
+vite.config.ts         Vite + React + Tailwind + singlefile plugins
+.github/workflows/deploy.yml   GitHub Pages deploy workflow
+scripts/package-release.mjs  creates the GitHub upload ZIP
+supabase/migrations/          one-time database setup SQL
+docs/HIGH_SCORES.md           shared leaderboard setup and security notes
+tests/                        local score and database permission tests
+UPLOAD-TO-GITHUB.md           beginner-friendly GitHub upload guide
 ```
 
-### Performance notes
+## Branding
+
+The game canvas leaves room for a plaque on the nurses-station desk where you can drop a custom logo. Add **either**:
+
+```
+public/brand/logo.svg     ← best: true vector, sharp at any zoom
+public/brand/logo.png     ← fallback: 2000px+ transparent export
+```
+
+If no file is present, a hand-drawn placeholder is rendered so the plaque isn't blank.
+
+## Performance notes
 
 - The static ward (floors, walls, beds, furniture, signage) is rendered **once** to an offscreen canvas and blitted each frame; only entities, lighting and particles are redrawn.
 - Radial-gradient glows are cached by colour and radius rather than rebuilt per frame.
@@ -183,9 +270,6 @@ src/
 
 ## Licence
 
-No licence file is included yet — add one (MIT is the usual default for a project like this) before making the repository public, otherwise the default is "all rights reserved".
+MIT — see [LICENSE](./LICENSE). No third-party game-engine or sprite assets are required; everything in `src/game/` is original to this project.
 
 > **Note:** this is an unaffiliated fan/demo project. If "Miracle Electronics" or "CareCall" are real trademarks belonging to someone else, get permission or rename before publishing it publicly.
->
-> Deployment test
-> ''

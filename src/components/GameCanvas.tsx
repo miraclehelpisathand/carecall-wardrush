@@ -109,6 +109,8 @@ export default function GameCanvas({
     // ------------------------------------------------------------- input
     const keys = new Set<string>();
     const onKeyDown = (ev: KeyboardEvent) => {
+      const target = ev.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, button, [contenteditable='true']")) return;
       const k = ev.key.toLowerCase();
       if (k in MOVE_KEYS || k === " " || k === "spacebar") ev.preventDefault();
       if (ev.repeat) return;

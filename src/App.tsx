@@ -8,7 +8,10 @@ import { Engine, type Hud as HudData } from "./game/engine";
 import { sfx } from "./game/audio";
 import { loadProgress, saveProgress, useHighScores } from "./hooks/useHighScores";
 import { useDevice } from "./hooks/useDevice";
+import { useSharedLeaderboard } from "./hooks/useSharedLeaderboard";
 import LandscapeGate from "./components/LandscapeGate";
+import { createRunId, type ScoreSaveResult } from "./lib/highScores";
+import { leaderboardError, submitSharedScore } from "./lib/leaderboard";
 
 type LockableScreen = Screen & {
   orientation?: { lock?: (o: string) => Promise<unknown>; unlock?: () => void };
@@ -73,6 +76,21 @@ export default function App() {
   const [startLevel, setStartLevel] = useState(() => loadProgress());
   const [countdown, setCountdown] = useState(6);
   const { scores, submit, qualifies } = useHighScores();
+  const shared = useSharedLeaderboard(screen === "menu" || hud.phase === "gameover");
+  const run = useRef({ id: "", startLevel: 1 });
+
+  const saveScore = useCallback(async (name: string, publish: boolean): Promise<ScoreSaveResult> => {
+    const entry = { runId: run.current.id, startLevel: run.current.startLevel, name, score: hud.score, level: hud.level };
+    const local = submit(name, entry.score, entry.level, entry.runId);
+    if (!publish) return { ...local, sharedSaved: false };
+    try {
+      await submitSharedScore(entry);
+      void shared.refresh();
+      return { ...local, sharedSaved: true };
+    } catch (error) {
+      return { ...local, sharedSaved: false, error: leaderboardError(error) };
+    }
+  }, [hud.score, hud.level, submit, shared.refresh]);
 
   const device = useDevice();
   const { handheld, desktop, touch, portrait } = device;
@@ -99,6 +117,7 @@ export default function App() {
     (level: number) => {
       sfx.resume();
       sfx.ui();
+      run.current = { id: createRunId(), startLevel: level };
       engine.startRun(level);
       setHud(engine.snapshot());
       setPaused(false);
@@ -159,7 +178,7 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;
+      if (el?.closest("input, textarea, select, button, [contenteditable='true']")) return;
       if (e.key === "Enter") {
         if (screen === "menu") start(startLevel);
         else if (engine.phase === "gameover") start(engine.level >= 50 ? 1 : engine.level);
@@ -270,6 +289,7 @@ export default function App() {
         <StartScreen
           onStart={() => start(startLevel)}
           scores={scores}
+          shared={shared}
           unlocked={unlocked}
           startLevel={Math.min(startLevel, unlocked)}
           setStartLevel={setStartLevel}
@@ -285,9 +305,11 @@ export default function App() {
         <GameOverScreen
           hud={hud}
           scores={scores}
+          shared={shared}
+          startLevel={run.current.startLevel}
           qualifies={qualifies(hud.score)}
           victory={victory}
-          onSubmit={(name) => submit(name, hud.score, hud.level)}
+          onSubmit={saveScore}
           onRestart={() => start(1)}
           onRetry={() => start(victory ? 1 : hud.level)}
           onMenu={goMenu}

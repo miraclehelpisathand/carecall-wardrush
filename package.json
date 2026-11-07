@@ -1,28 +1,37 @@
 {
-  "name": "react-vite-tailwind",
+  "name": "carecall-ward-rush",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "CareCall Ward Rush — a hospital nurse call response arcade game.",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.108.0",
     "clsx": "2.1.1",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.15",
     "@tailwindcss/vite": "4.1.17",
     "@types/node": "22.19.17",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
     "tailwindcss": "4.1.17",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
-    "vite": "7.3.2",
+    "vite": "7.3.7",
     "vite-plugin-singlefile": "2.3.0"
   }
 }

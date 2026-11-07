@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#070d14" />
+    <meta name="description" content="Download the GitHub-ready source package for CareCall Ward Rush." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6E9A'/%3E%3Crect x='26' y='12' width='12' height='40' rx='3' fill='%23fff'/%3E%3Crect x='12' y='26' width='40' height='12' rx='3' fill='%23fff'/%3E%3C/svg%3E"
+    />
+    <title>Download — CareCall Ward Rush</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #05090f;
+        --panel: rgba(11, 20, 32, 0.94);
+        --line: rgba(90, 190, 230, 0.18);
+        --cyan: #00aeef;
+        --cyan-soft: #67e8f9;
+        --green: #25e07a;
+        --amber: #ffb020;
+        --red: #ff2f4f;
+        --purple: #b061ff;
+        --text: #dbeafe;
+        --muted: #8aa0b4;
+      }
+
+      * { box-sizing: border-box; }
+
+      html {
+        background: var(--bg);
+        scrollbar-color: rgba(120, 200, 235, 0.35) rgba(8, 14, 22, 0.9);
+        scrollbar-width: thin;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        background:
+          radial-gradient(900px 500px at 15% -10%, rgba(0, 174, 239, 0.16), transparent 60%),
+          radial-gradient(800px 500px at 90% 10%, rgba(37, 224, 122, 0.08), transparent 55%),
+          linear-gradient(180deg, #071019 0%, #05090f 100%);
+        color: var(--text);
+        font-family: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+        line-height: 1.5;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(70, 180, 220, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(70, 180, 220, 0.05) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: radial-gradient(ellipse at 50% 20%, black 30%, transparent 80%);
+      }
+
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: rgba(8, 14, 22, 0.9); }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(120, 200, 235, 0.28);
+        border-radius: 99px;
+        border: 2px solid rgba(8, 14, 22, 0.9);
+      }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(120, 200, 235, 0.45); }
+
+      main {
+        position: relative;
+        width: min(920px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0 64px;
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(11, 20, 32, 0.96), rgba(6, 12, 20, 0.97));
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow:
+          inset 0 1px 0 rgba(160, 230, 255, 0.08),
+          0 24px 70px rgba(0, 0, 0, 0.55);
+        padding: clamp(20px, 4vw, 40px);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        color: var(--cyan-soft);
+        text-transform: uppercase;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: var(--green);
+        box-shadow: 0 0 12px var(--green);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+
+      h1 {
+        margin: 12px 0 8px;
+        font-size: clamp(30px, 6vw, 52px);
+        line-height: 1.05;
+        letter-spacing: 0.02em;
+        color: white;
+      }
+
+      h1 span { color: var(--cyan); }
+
+      .lead {
+        margin: 0;
+        max-width: 62ch;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 28px 0 18px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 0 22px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .button:active { transform: scale(0.97); }
+      .button:hover { filter: brightness(1.1); }
+
+      .button-primary {
+        color: #04202b;
+        background: linear-gradient(90deg, var(--cyan-soft), var(--green));
+        box-shadow: 0 0 34px rgba(34, 211, 238, 0.3);
+      }
+
+      .button-secondary {
+        color: var(--cyan-soft);
+        background: rgba(0, 174, 239, 0.08);
+        border-color: rgba(0, 174, 239, 0.28);
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin: 22px 0;
+      }
+
+      .meta div {
+        background: rgba(0, 0, 0, 0.32);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+
+      .meta dt {
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .meta dd {
+        margin: 4px 0 0;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 16px;
+        color: white;
+        overflow-wrap: anywhere;
+      }
+
+      .checksum {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.32);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+
+      .checksum code {
+        flex: 1 1 260px;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 12px;
+        color: var(--amber);
+        overflow-wrap: anywhere;
+      }
+
+      .copy {
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 176, 32, 0.3);
+        background: rgba(255, 176, 32, 0.08);
+        color: var(--amber);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        cursor: pointer;
+      }
+
+      h2 {
+        margin: 34px 0 12px;
+        font-size: 13px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--cyan-soft);
+      }
+
+      ol {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--text);
+      }
+
+      li { margin: 8px 0; }
+      li::marker { color: var(--cyan); font-weight: 700; }
+
+      code.inline {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        padding: 2px 6px;
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        font-size: 0.92em;
+        color: var(--cyan-soft);
+      }
+
+      .callouts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .callout {
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 13px;
+        border: 1px solid;
+      }
+
+      .callout strong { display: block; margin-bottom: 4px; letter-spacing: 0.08em; }
+      .callout.green { color: #b8f5d2; border-color: rgba(37, 224, 122, 0.25); background: rgba(37, 224, 122, 0.06); }
+      .callout.amber { color: #ffe1ad; border-color: rgba(255, 176, 32, 0.25); background: rgba(255, 176, 32, 0.06); }
+      .callout.purple { color: #e4ccff; border-color: rgba(176, 97, 255, 0.25); background: rgba(176, 97, 255, 0.06); }
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+      }
+
+      a { color: var(--cyan-soft); }
+
+      @media (max-width: 560px) {
+        main { padding-top: 28px; }
+        .button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <span class="eyebrow"><span class="dot"></span> GitHub-ready release</span>
+        <h1>Care<span>Call</span> Ward Rush</h1>
+        <p class="lead">
+          Download the complete source package, upload it to GitHub, and enable GitHub Pages.
+          The package includes the game, deployment workflow, tests, and optional shared high-score setup.
+        </p>
+
+        <div class="actions">
+          <a id="download" class="button button-primary" href="downloads/carecall-ward-rush-github.zip" download>
+            Download GitHub package
+          </a>
+          <a class="button button-secondary" href="./">Play the game</a>
+        </div>
+
+        <dl class="meta">
+          <div>
+            <dt>Package</dt>
+            <dd id="file-name">carecall-ward-rush-github.zip</dd>
+          </div>
+          <div>
+            <dt>Version</dt>
+            <dd id="version">—</dd>
+          </div>
+          <div>
+            <dt>Files</dt>
+            <dd id="file-count">—</dd>
+          </div>
+          <div>
+            <dt>ZIP size</dt>
+            <dd id="zip-size">—</dd>
+          </div>
+        </dl>
+
+        <div class="checksum">
+          <code id="sha256">SHA-256 will appear here after the package manifest loads.</code>
+          <button id="copy" class="copy" type="button">Copy SHA-256</button>
+        </div>
+
+        <h2>Upload to GitHub</h2>
+        <ol>
+          <li>Create a new GitHub repository.</li>
+          <li>Unzip the package and show hidden files so <code class="inline">.github</code>, <code class="inline">.gitignore</code>, and <code class="inline">.nvmrc</code> are visible.</li>
+          <li>Upload all files and folders inside the unzipped folder to the repository root.</li>
+          <li>Open <strong>Settings → Pages</strong> and set <strong>Source</strong> to <strong>GitHub Actions</strong>.</li>
+          <li>Wait for the <strong>Deploy to GitHub Pages</strong> workflow to finish.</li>
+        </ol>
+
+        <div class="callouts">
+          <div class="callout green">
+            <strong>Local scores included</strong>
+            The game saves each player’s top scores on their device without any extra setup.
+          </div>
+          <div class="callout amber">
+            <strong>Shared scores optional</strong>
+            To enable a leaderboard for everyone, follow <code class="inline">docs/HIGH_SCORES.md</code> after uploading.
+          </div>
+          <div class="callout purple">
+            <strong>Logo optional</strong>
+            Add <code class="inline">public/brand/logo.svg</code> or <code class="inline">public/brand/logo.png</code> before deploying.
+          </div>
+        </div>
+
+        <footer>
+          Full instructions are included in <code class="inline">UPLOAD-TO-GITHUB.md</code>.
+          Do not upload <code class="inline">node_modules</code>, <code class="inline">dist</code>, or private <code class="inline">.env.local</code> files.
+        </footer>
+      </section>
+    </main>
+
+    <script>
+      const manifestUrl = "downloads/package-manifest.json";
+      const shaElement = document.getElementById("sha256");
+      const copyButton = document.getElementById("copy");
+
+      function formatBytes(bytes) {
+        if (!Number.isFinite(bytes)) return "—";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+
+      async function loadManifest() {
+        try {
+          const response = await fetch(manifestUrl, { cache: "no-store" });
+          if (!response.ok) throw new Error("Manifest unavailable");
+          const manifest = await response.json();
+
+          document.getElementById("version").textContent = manifest.version || "—";
+          document.getElementById("file-count").textContent = String(manifest.fileCount ?? "—");
+          document.getElementById("zip-size").textContent = formatBytes(manifest.zipBytes);
+          document.getElementById("file-name").textContent = manifest.fileName || "carecall-ward-rush-github.zip";
+
+          if (manifest.downloadPath) {
+            document.getElementById("download").href = manifest.downloadPath;
+          }
+
+          if (manifest.sha256) {
+            shaElement.textContent = manifest.sha256;
+            copyButton.disabled = false;
+          }
+        } catch {
+          shaElement.textContent = "Package manifest unavailable. The ZIP download still works.";
+          copyButton.disabled = true;
+        }
+      }
+
+      copyButton.addEventListener("click", async () => {
+        const value = shaElement.textContent.trim();
+        if (!value || value.length < 32) return;
+        try {
+          await navigator.clipboard.writeText(value);
+          copyButton.textContent = "Copied";
+        } catch {
+          const range = document.createRange();
+          range.selectNodeContents(shaElement);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          copyButton.textContent = "Selected";
+        }
+        setTimeout(() => { copyButton.textContent = "Copy SHA-256"; }, 1600);
+      });
+
+      loadManifest();
+    </script>
+  </body>
+</html>

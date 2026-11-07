@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
 import { CALL_META } from "../game/constants";
-
 import type { Hud } from "../game/engine";
 import type { ScoreEntry } from "../hooks/useHighScores";
+import type { SharedLeaderboardState } from "../hooks/useSharedLeaderboard";
+import type { ScoreSaveResult } from "../lib/highScores";
+import Leaderboard from "./Leaderboard";
+import ScoreEntryForm from "./ScoreEntryForm";
 
 export function Logo({ small = false }: { small?: boolean }) {
   return (
@@ -62,45 +64,17 @@ function LegendTile({ kind, desc }: { kind: keyof typeof CALL_META; desc: string
   );
 }
 
-export function ScoreTable({ scores, highlight }: { scores: ScoreEntry[]; highlight?: number }) {
-  return (
-    <div className="cc-panel rounded-xl p-2.5">
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[10px] font-bold tracking-[0.22em] text-cyan-300">TOP SHIFTS</span>
-        <span className="text-[9px] tracking-widest text-slate-600">LOCAL</span>
-      </div>
-      {scores.length === 0 ? (
-        <div className="py-4 text-center text-[11px] tracking-widest text-slate-600">NO RECORDS YET</div>
-      ) : (
-        <div className="flex flex-col gap-0.5">
-          {scores.map((s, i) => (
-            <div
-              key={`${s.date}-${i}`}
-              className={`flex items-center gap-2 rounded px-1.5 py-1 font-mono text-[12px] ${
-                highlight === s.date ? "bg-amber-400/20 text-amber-200" : i % 2 ? "bg-white/[0.03]" : ""
-              }`}
-            >
-              <span className="w-4 text-slate-500">{i + 1}</span>
-              <span className="w-16 truncate text-slate-200">{s.name}</span>
-              <span className="ml-auto text-amber-300">{s.score.toLocaleString()}</span>
-              <span className="w-14 text-right text-[10px] text-slate-500">SHIFT {s.level}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function StartScreen({
   onStart,
   scores,
+  shared,
   unlocked,
   startLevel,
   setStartLevel,
 }: {
   onStart: () => void;
   scores: ScoreEntry[];
+  shared: SharedLeaderboardState;
   unlocked: number;
   startLevel: number;
   setStartLevel: (n: number) => void;
@@ -203,7 +177,7 @@ export function StartScreen({
                 >
                   START SHIFT ▸
                 </button>
-                <ScoreTable scores={scores} />
+                <Leaderboard localScores={scores} shared={shared} />
               </div>
             </div>
           </div>
@@ -299,6 +273,8 @@ export function LevelCompleteScreen({ hud, onNext, countdown }: { hud: Hud; onNe
 export function GameOverScreen({
   hud,
   scores,
+  shared,
+  startLevel,
   qualifies,
   onSubmit,
   onRestart,
@@ -308,21 +284,15 @@ export function GameOverScreen({
 }: {
   hud: Hud;
   scores: ScoreEntry[];
+  shared: SharedLeaderboardState;
+  startLevel: number;
   qualifies: boolean;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, share: boolean) => Promise<ScoreSaveResult>;
   onRestart: () => void;
   onRetry: () => void;
   onMenu: () => void;
   victory: boolean;
 }) {
-  const [name, setName] = useState("NURSE");
-  const [saved, setSaved] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (qualifies && inputRef.current) inputRef.current.select();
-  }, [qualifies]);
-
   return (
     <Overlay>
       <div className="w-full max-w-2xl">
@@ -354,28 +324,8 @@ export function GameOverScreen({
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              {qualifies && !saved && (
-                <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-2.5">
-                  <div className="text-[10px] tracking-[0.22em] text-amber-300">NEW HIGH SCORE — SIGN IN</div>
-                  <div className="mt-1.5 flex gap-2">
-                    <input
-                      ref={inputRef}
-                      value={name}
-                      maxLength={8}
-                      onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, ""))}
-                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/50 px-2 py-1.5 font-mono text-sm uppercase tracking-widest text-amber-200 outline-none focus:border-amber-400/60"
-                    />
-                    <button
-                      onClick={() => {
-                        onSubmit(name);
-                        setSaved(true);
-                      }}
-                      className="cc-btn rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold tracking-widest text-[#2a1a02]"
-                    >
-                      SAVE
-                    </button>
-                  </div>
-                </div>
+              {hud.score > 0 && (
+                <ScoreEntryForm qualifies={qualifies} sharedConfigured={shared.configured} startLevel={startLevel} onSave={onSubmit} />
               )}
               <button
                 onClick={onRetry}
@@ -399,7 +349,7 @@ export function GameOverScreen({
               </div>
               <div className="text-center text-[10px] tracking-widest text-slate-600">PRESS ENTER TO RETRY</div>
             </div>
-            <ScoreTable scores={scores} />
+            <Leaderboard localScores={scores} shared={shared} />
           </div>
         </div>
       </div>
