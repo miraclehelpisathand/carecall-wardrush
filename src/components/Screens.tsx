@@ -274,9 +274,9 @@ export function GameOverScreen({
   shared,
   qualifies,
   rank,
-  practice,
   highlightId,
   onSubmit,
+  onShowScores,
   onRestart,
   onRetry,
   onMenu,
@@ -286,9 +286,9 @@ export function GameOverScreen({
   shared: SharedLeaderboardState;
   qualifies: boolean;
   rank: number | null;
-  practice: boolean;
   highlightId: string | null;
   onSubmit: (name: string) => Promise<ScoreSaveResult>;
+  onShowScores: () => void;
   onRestart: () => void;
   onRetry: () => void;
   onMenu: () => void;
@@ -329,8 +329,9 @@ export function GameOverScreen({
                 <ScoreEntryForm
                   qualifies={qualifies}
                   rank={rank}
+                  score={hud.score}
+                  cutoff={shared.cutoff}
                   canSubmit={shared.configured}
-                  practice={practice}
                   onSave={onSubmit}
                 />
               )}
@@ -339,6 +340,12 @@ export function GameOverScreen({
                 className="cc-btn rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 py-3 font-bold tracking-[0.18em] text-[#04202b]"
               >
                 {victory ? "PLAY AGAIN ⟲" : `RETRY SHIFT ${hud.level} ⟲`}
+              </button>
+              <button
+                onClick={onShowScores}
+                className="cc-btn rounded-xl border border-cyan-400/30 bg-cyan-500/10 py-2.5 text-xs font-bold tracking-[0.18em] text-cyan-200"
+              >
+                VIEW FULL LEADERBOARD ▸
               </button>
               <div className="flex gap-2">
                 <button

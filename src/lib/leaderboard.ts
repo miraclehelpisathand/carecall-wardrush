@@ -92,7 +92,7 @@ async function ensureGuestSession(): Promise<void> {
 
 export async function submitSharedScore(entry: ScoreSubmission): Promise<ScoreEntry> {
   if (!validScore(entry.score, entry.level)) throw new Error("This score is not valid.");
-  if (entry.startLevel !== 1) throw new Error("Shared leaderboard runs must start at shift 1.");
+  // Every run competes — the board ranks by score alone, wherever the run began.
   await ensureGuestSession();
   const { data, error } = await getClient().rpc("carecall_submit_score", {
     p_run_id: entry.runId,
@@ -177,7 +177,7 @@ export async function testConnection(): Promise<{ ok: boolean; message: string; 
       ok: true,
       message: scores.length
         ? `Connected. ${scores.length} shared ${scores.length === 1 ? "score" : "scores"} loaded.`
-        : "Connected. The leaderboard is empty — publish a run from shift 1 to add the first score.",
+        : "Connected. The leaderboard is empty — finish a run to add the first score.",
       hint: "none",
     };
   } catch (error) {

@@ -6,6 +6,7 @@ import { SEED_SCORES } from "../src/lib/seedScores.ts";
 
 const base = await readFile(new URL("../supabase/migrations/202611070001_carecall_leaderboard.sql", import.meta.url), "utf8");
 const top20 = await readFile(new URL("../supabase/migrations/202611080001_carecall_top20_seed.sql", import.meta.url), "utf8");
+const anyStart = await readFile(new URL("../supabase/migrations/202611090001_carecall_any_start.sql", import.meta.url), "utf8");
 
 let db: PGlite;
 const alice = "10000000-0000-4000-8000-000000000001";
@@ -54,6 +55,7 @@ describe("leaderboard database", () => {
     `);
     await db.exec(base);
     await db.exec(top20);
+    await db.exec(anyStart);
   });
 
   beforeEach(async () => {
@@ -92,14 +94,21 @@ describe("leaderboard database", () => {
     await assert.rejects(submit(), { code: "42501" });
   });
 
-  it("validates name, score, shift and start shift server-side", async () => {
+  it("validates name, score and shift server-side", async () => {
     await asGuest();
     for (const name of ["", "<script>", "NINECHARS", "BAD!", "     "]) {
       await assert.rejects(submit(run, name), { code: "22023" });
     }
     for (const score of [-1, 0, 10000001]) await assert.rejects(submit(run, "NURSE", score), { code: "22023" });
     for (const level of [0, 51]) await assert.rejects(submit(run, "NURSE", 100, level), { code: "22023" });
-    await assert.rejects(submit(run, "NURSE", 100, 10, 5), { code: "22023" });
+  });
+
+  it("accepts runs wherever they started — every run competes", async () => {
+    await asGuest();
+    assert.equal((await submit(run, "LATE", 5000, 12, 5)).rows.length, 1);
+    await db.exec("reset role");
+    const n = await db.query<{ count: number }>("select count(*)::integer as count from carecall_private.scores");
+    assert.equal(n.rows[0].count, 1);
   });
 
   it("stores a qualifying run without exposing the guest id", async () => {
@@ -181,6 +190,24 @@ describe("leaderboard database", () => {
     assert.equal(rows[19].name, "CHASER");
   });
 
+  it("pushes lower places down and drops the 20th off the board", async () => {
+    await fillBoard(1000); // places hold 2900 … 1000
+    await asGuest(bob);
+    await submit(run, "MID", 1550, 10); // lands mid-board
+    await db.exec("set role anon");
+    const rows = (await board()).rows;
+    assert.equal(rows.length, 20);
+    const names = rows.map((r) => r.name);
+    const scores = rows.map((r) => r.score);
+    // MID slots in ranked order, everything beneath shifts down one place …
+    assert.equal(names[scores.indexOf(1550)], "MID");
+    assert.ok(scores.indexOf(1550) > 0 && scores.indexOf(1550) < 19);
+    // … and the old 20th (1000) falls off entirely.
+    assert.ok(!scores.includes(1000), "lowest score drops off");
+    assert.equal(Math.min(...scores), 1100);
+    for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1].score >= rows[i].score);
+  });
+
   it("accepts any score while the board still has room", async () => {
     await asGuest();
     assert.equal((await submit(run, "FIRST", 5)).rows.length, 1);
@@ -227,12 +254,13 @@ describe("leaderboard database", () => {
     assert.equal((await submit(run, "NEWNURSE", 300000, 21)).rows.length, 1);
   });
 
-  it("keeps every score when both migrations are re-run", async () => {
+  it("keeps every score when all migrations are re-run", async () => {
     await asGuest();
     await submit();
     await db.exec("reset role");
     await db.exec(base);
     await db.exec(top20);
+    await db.exec(anyStart);
     assert.equal((await board()).rows.length, 1);
   });
 });

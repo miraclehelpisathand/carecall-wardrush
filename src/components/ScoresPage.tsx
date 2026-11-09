@@ -117,11 +117,13 @@ function Stat({ label, value, tone }: { label: string; value: string; tone: stri
 export default function ScoresPage({
   shared,
   highlightId,
+  backLabel = "BACK TO MAIN MENU",
   onBack,
   onPlay,
 }: {
   shared: SharedLeaderboardState;
   highlightId?: string | null;
+  backLabel?: string;
   onBack: () => void;
   onPlay: () => void;
 }) {
@@ -206,8 +208,8 @@ export default function ScoresPage({
             className="cc-btn group flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-2.5 text-[10px] font-bold tracking-[0.16em] text-cyan-200"
           >
             <span className="transition-transform group-hover:-translate-x-0.5">◂</span>
-            <span className="hidden sm:inline">MAIN MENU</span>
-            <span className="sm:hidden">MENU</span>
+            <span className="hidden sm:inline">{backLabel === "BACK TO RESULTS" ? "RESULTS" : "MAIN MENU"}</span>
+            <span className="sm:hidden">{backLabel === "BACK TO RESULTS" ? "BACK" : "MENU"}</span>
           </button>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
@@ -267,7 +269,7 @@ export default function ScoresPage({
           <p className="mb-3 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-2 text-[11px] leading-snug text-cyan-200/85">
             {shared.configured
               ? "Opening board — connecting for live scores…"
-              : "Opening house records. Finish a run from shift 1 to put your name on the board."}
+              : "Opening house records. Finish a run and beat the lowest score to put your name on the board."}
           </p>
         )}
 
@@ -373,7 +375,7 @@ export default function ScoresPage({
             onClick={onBack}
             className="cc-btn min-h-12 flex-1 rounded-xl border border-cyan-400/30 bg-cyan-500/10 text-[11px] font-bold tracking-[0.18em] text-cyan-200"
           >
-            ◂ BACK TO MAIN MENU
+            ◂ {backLabel}
           </button>
           <button
             type="button"
@@ -384,7 +386,7 @@ export default function ScoresPage({
           </button>
         </div>
         <p className="mt-2 text-center text-[10px] tracking-[0.18em] text-slate-600">
-          ESC RETURNS TO THE MENU · RANKED RUNS START AT SHIFT 1
+          ESC GOES BACK · EVERY RUN COUNTS · NEW PLACES PUSH LOWER SCORES DOWN
         </p>
       </div>
 

@@ -84,19 +84,26 @@ export default function App() {
   );
   const run = useRef({ id: "", startLevel: 1 });
   const [placedId, setPlacedId] = useState<string | null>(null);
+  // Where the Ward Honours page returns to — the menu, or the just-finished run.
+  const [scoresReturn, setScoresReturn] = useState<"menu" | "game">("menu");
 
-  // One board for everyone. A run that beats the 20th place is stored automatically.
-  const rankedRun = run.current.startLevel === 1;
-  const projectedRank = rankedRun ? rankFor(shared.board, hud.score, hud.level) : null;
+  // One board for everyone. Every run competes on score alone, wherever it began.
+  // A run that beats the 20th place is stored; lower places shift down, 20th falls off.
+  const projectedRank = rankFor(shared.board, hud.score, hud.level);
   const qualifies = hud.phase === "gameover" && hud.score > 0 && projectedRank !== null;
 
   const saveScore = useCallback(async (name: string): Promise<ScoreSaveResult> => {
     const entry = { runId: run.current.id, startLevel: run.current.startLevel, name, score: hud.score, level: hud.level };
     const local = submit(name, entry.score, entry.level, entry.runId);
+    // Projected before the write: the board only ever inserts above, so this is
+    // the rank the run takes barring a simultaneous rival submission.
     const fallbackRank = rankFor(shared.board, entry.score, entry.level);
     const base = { stored: false, rank: null as number | null, belowCutoff: false, localPersisted: local.localPersisted };
 
-    if (entry.startLevel !== 1) return { ...base, rank: fallbackRank };
+    // Highlight the run on the board whatever happens next — the local copy is
+    // part of the displayed board while offline, and the shared row after refresh.
+    if (local.localRanked) setPlacedId(entry.runId);
+
     if (!shared.configured) {
       return { ...base, rank: fallbackRank, error: "Leaderboard not connected. Open SETUP on the board to enable it." };
     }
@@ -104,7 +111,7 @@ export default function App() {
       const saved = await submitSharedScore(entry);
       await shared.refresh();
       setPlacedId(saved.id ?? entry.runId);
-      return { ...base, stored: true, rank: rankFor(shared.board, entry.score, entry.level) ?? fallbackRank };
+      return { ...base, stored: true, rank: fallbackRank };
     } catch (error) {
       const message = leaderboardError(error);
       const belowCutoff = message.includes("did not reach the top");
@@ -311,7 +318,7 @@ export default function App() {
       {screen === "menu" && (
         <StartScreen
           onStart={() => start(startLevel)}
-          onShowScores={() => { sfx.ui(); setScreen("scores"); }}
+          onShowScores={() => { sfx.ui(); setScoresReturn("menu"); setScreen("scores"); }}
           shared={shared}
           unlocked={unlocked}
           startLevel={Math.min(startLevel, unlocked)}
@@ -322,7 +329,8 @@ export default function App() {
         <ScoresPage
           shared={shared}
           highlightId={placedId}
-          onBack={() => { sfx.ui(); setScreen("menu"); }}
+          backLabel={scoresReturn === "game" ? "BACK TO RESULTS" : "BACK TO MAIN MENU"}
+          onBack={() => { sfx.ui(); setScreen(scoresReturn); }}
           onPlay={() => start(startLevel)}
         />
       )}
@@ -338,10 +346,10 @@ export default function App() {
           shared={shared}
           qualifies={qualifies}
           rank={projectedRank}
-          practice={!rankedRun}
           highlightId={placedId}
           victory={victory}
           onSubmit={saveScore}
+          onShowScores={() => { sfx.ui(); setScoresReturn("game"); setScreen("scores"); }}
           onRestart={() => start(1)}
           onRetry={() => start(victory ? 1 : hud.level)}
           onMenu={goMenu}

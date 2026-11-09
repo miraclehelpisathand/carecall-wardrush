@@ -14,14 +14,16 @@ function rememberedName(): string {
 export default function ScoreEntryForm({
   qualifies,
   rank,
+  score,
+  cutoff,
   canSubmit,
-  practice,
   onSave,
 }: {
   qualifies: boolean;
   rank: number | null;
+  score: number;
+  cutoff: number;
   canSubmit: boolean;
-  practice: boolean;
   onSave: (name: string) => Promise<ScoreSaveResult>;
 }) {
   const [name, setName] = useState(() => rememberedName() || "NURSE");
@@ -32,11 +34,21 @@ export default function ScoreEntryForm({
   const mounted = useRef(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Latch qualification at the moment the run ends. The live board can refresh
+  // underneath this screen (raising the cutoff); the form must never vanish
+  // mid-typing. If the board fills before the save lands, the server's
+  // BELOW_CUTOFF response is reported calmly instead.
+  const everQualifies = useRef(qualifies);
+  if (qualifies) everQualifies.current = true;
+  const shownRank = useRef(rank);
+  if (rank !== null && !result) shownRank.current = rank;
+
   useEffect(() => {
     mounted.current = true;
-    if (qualifies) inputRef.current?.select();
+    if (everQualifies.current) inputRef.current?.select();
     return () => { mounted.current = false; };
-  }, [qualifies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -60,18 +72,24 @@ export default function ScoreEntryForm({
 
   const done = Boolean(result && (result.stored || result.belowCutoff));
   const canRetry = Boolean(result && !result.stored && !result.belowCutoff);
+  const short = cutoff > 0 ? cutoff - score + 1 : 0;
 
-  if (!qualifies && !result) {
+  if (!everQualifies.current && !result) {
     return (
       <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
         <p className="text-[11px] leading-snug text-slate-400">
-          {practice
-            ? `Practice run — the board ranks shifts started at 1. Start a fresh run to compete for the top ${SCORE_LIMIT}.`
+          {cutoff > 0
+            ? <>Scored <span className="font-mono text-slate-200">{score.toLocaleString()}</span> — need{" "}
+              <span className="font-mono text-amber-300">{cutoff.toLocaleString()}</span> to place
+              {short > 0 && <> (<span className="font-mono">{short.toLocaleString()}</span> short)</>}. Every run
+              counts — go again.</>
             : `Outside the top ${SCORE_LIMIT} this time. Beat the lowest score on the board to claim a place.`}
         </p>
       </div>
     );
   }
+
+  const displayRank = result?.rank ?? shownRank.current;
 
   return (
     <form
@@ -80,10 +98,10 @@ export default function ScoreEntryForm({
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-[10px] font-bold tracking-[0.18em] text-amber-300">
-          {rank ? `TOP ${SCORE_LIMIT} — RANK ${rank}` : `TOP ${SCORE_LIMIT} SCORE`}
+          {displayRank ? `TOP ${SCORE_LIMIT} — RANK ${displayRank}` : `TOP ${SCORE_LIMIT} SCORE`}
         </span>
         {done && result?.stored && (
-          <span className="font-mono text-[10px] tracking-widest text-emerald-300">SAVED</span>
+          <span className="font-mono text-[10px] tracking-widest text-emerald-300">SAVED ✓</span>
         )}
       </div>
 
@@ -123,7 +141,9 @@ export default function ScoreEntryForm({
       {result && (
         <p role="status" className={`mt-1.5 text-[11px] leading-snug ${result.stored ? "text-emerald-200" : "text-slate-300"}`}>
           {result.stored
-            ? `On the board at number ${result.rank ?? rank ?? "—"}.`
+            ? displayRank
+              ? `On the board at number ${displayRank} — everyone below shifts down.`
+              : "On the board — everyone below shifts down."
             : result.belowCutoff
               ? "The board filled up before this run landed — not in the top 20."
               : result.localPersisted

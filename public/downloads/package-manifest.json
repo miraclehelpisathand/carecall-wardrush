@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "fileName": "carecall-ward-rush-github.zip",
   "downloadPath": "downloads/carecall-ward-rush-github.zip",
-  "createdAt": "2026-11-09T08:26:33.210Z",
-  "fileCount": 51,
-  "uncompressedBytes": 402726,
-  "zipBytes": 129915,
-  "sha256": "2dc43043f8ae28f4875cbc24f33cab938033240d27116b3b06ed14c882553b0c",
+  "createdAt": "2026-11-09T09:05:31.658Z",
+  "fileCount": 52,
+  "uncompressedBytes": 411180,
+  "zipBytes": 133163,
+  "sha256": "51ff5e4672ec2f4532fb2fe0328951d95f9ca473f657f1d106ee031d96104a2b",
   "instructions": "UPLOAD-TO-GITHUB.md",
   "contents": [
     {
@@ -29,7 +29,7 @@
       "id": "ui",
       "label": "Interface",
       "count": 17,
-      "bytes": 117421,
+      "bytes": 118942,
       "files": [
         "src/components/Annunciator.tsx",
         "src/components/GameCanvas.tsx",
@@ -54,7 +54,7 @@
       "id": "app",
       "label": "App shell",
       "count": 4,
-      "bytes": 20170,
+      "bytes": 20775,
       "files": [
         "src/App.tsx",
         "src/index.css",
@@ -82,20 +82,21 @@
     {
       "id": "scores",
       "label": "Shared scores",
-      "count": 4,
-      "bytes": 14498,
+      "count": 5,
+      "bytes": 18401,
       "files": [
         "public/leaderboard-config.README.txt",
         "public/leaderboard-config.json",
         "supabase/migrations/202611070001_carecall_leaderboard.sql",
-        "supabase/migrations/202611080001_carecall_top20_seed.sql"
+        "supabase/migrations/202611080001_carecall_top20_seed.sql",
+        "supabase/migrations/202611090001_carecall_any_start.sql"
       ]
     },
     {
       "id": "tests",
       "label": "Tests",
       "count": 3,
-      "bytes": 17809,
+      "bytes": 19914,
       "files": [
         "tests/database.test.ts",
         "tests/highScores.test.ts",
@@ -106,7 +107,7 @@
       "id": "docs",
       "label": "Guides",
       "count": 4,
-      "bytes": 34795,
+      "bytes": 35115,
       "files": [
         "README.md",
         "UPLOAD-TO-GITHUB.md",

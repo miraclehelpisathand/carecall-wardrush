@@ -23,17 +23,20 @@ The database's own permissions are what protect the scores.
 
 Before it will accept scores
 ----------------------------
-1. Run BOTH migrations, in this order, in Supabase -> SQL Editor -> New query:
+1. Run ALL THREE migrations, in this order, in Supabase -> SQL Editor -> New query:
      supabase/migrations/202611070001_carecall_leaderboard.sql
      supabase/migrations/202611080001_carecall_top20_seed.sql
+     supabase/migrations/202611090001_carecall_any_start.sql
    The second sets the board to 20 places and seeds the opening scores.
+   The third lets every run compete wherever it started.
+   (Already ran the first two? Running just the third is enough.)
 2. Enable Authentication -> Providers -> Anonymous Sign-Ins.
 
 How the board works
 -------------------
 One leaderboard: the top 20 of all players. There is no device/global switch.
 A run that beats the 20th place is stored automatically once the player types a
-name. Runs must start at shift 1 to be comparable.
+name. New places push everyone below down one and the 20th falls off.
 
 Until this file is filled in, the game shows the same twenty opening scores
 locally, so a first deployment is never empty.

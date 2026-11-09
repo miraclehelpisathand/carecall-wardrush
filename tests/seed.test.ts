@@ -105,4 +105,17 @@ describe("qualification", () => {
     assert.ok(merged.some((m) => m.id === "real"));
     assert.ok(!merged.some((m) => m.id === full[19].id), "INTERN drops off");
   });
+
+  it("pushes lower places down one and drops the 20th on a mid-board entry", () => {
+    const target = full[7]; // BLUECAP, 8th place
+    const mine = { id: "mid", name: "ME", score: target.score + 10, level: target.level, date: Date.now() };
+    const merged = sortScores([...full, mine]).slice(0, SCORE_LIMIT);
+    assert.equal(merged.length, 20);
+    // New entry takes 8th; the old 8th..19th each shift down exactly one …
+    assert.equal(merged[7].id, "mid");
+    for (let i = 8; i < 20; i++) assert.equal(merged[i].id, full[i - 1].id, `place ${i + 1} shifts down`);
+    // … and the old 20th falls off.
+    assert.ok(!merged.some((m) => m.id === full[19].id), "old 20th drops off");
+    assert.equal(rankFor(full, mine.score, mine.level), 8);
+  });
 });

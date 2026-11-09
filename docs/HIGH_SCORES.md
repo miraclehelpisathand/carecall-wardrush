@@ -31,14 +31,13 @@ The three usual causes:
    missing"* and names the file to run.
 3. **Anonymous Sign-Ins are disabled.** SETUP reports it and points at the toggle.
 
-Two other things that look like failures but are correct:
+One thing that looks like a failure but is correct:
 
-- **Publishing is a choice.** The *Publish to the shared leaderboard* box must be
-  ticked. Once a connection is proven it defaults to on, and your choice is
-  remembered. The result is reported on two separate lines — **SHARED** and
-  **DEVICE** — so a local save is never mistaken for a published one.
-- **Runs must start at shift 1** to be comparable. Starting at a later unlocked
-  shift is a practice run and stays device-only.
+- **Below the cutoff, there is no name box.** The 20th-place score is the bar
+  (shown under the board as *"Beat X to place"*). A run beneath it shows how
+  far short it fell instead of a save form — type a name only when you've earned
+  a place. When you do, saving inserts your row in rank order: everyone below
+  shifts down one place and the old 20th falls off.
 
 ## Fastest setup — the in-game SETUP panel
 
@@ -55,14 +54,17 @@ To turn the leaderboard on for every player, use `leaderboard-config.json` below
 2. Choose the region appropriate for your players. Check the current plan,
    usage limits, and backup options before relying on it for a public release.
 3. Open **SQL Editor**, then **New query**.
-4. Run **both** migration files in order, pasting each into the editor and
+4. Run **all three** migration files in order, pasting each into the editor and
    clicking **Run**:
    1. `supabase/migrations/202611070001_carecall_leaderboard.sql`
    2. `supabase/migrations/202611080001_carecall_top20_seed.sql`
+   3. `supabase/migrations/202611090001_carecall_any_start.sql`
 
    The second raises the board to 20 places, stores only qualifying runs, and
-   seeds the opening scores. Both are safe to re-run; neither duplicates or
-   overwrites real player scores.
+   seeds the opening scores. The third lets every run compete regardless of
+   starting shift. All are safe to re-run; none duplicate or overwrite real
+   player scores. If you already ran the first two, running just the third is
+   enough.
 5. Under **Authentication**, find **Sign In / Providers** (sometimes called
    **Providers**) and enable **Anonymous Sign-Ins**.
 
@@ -125,34 +127,37 @@ file. Do not commit `.env.local`.
 
 ## 5. Check that it works
 
-1. Open the deployed game and select **Everyone** under **Top Shifts**. A new
-   database correctly shows **No records yet**, not demo scores.
-2. Start a new run at **shift 1** and earn some points. At game over, enter a
-   nickname (eight letters/numbers/spaces maximum).
-3. Tick **Publish my nickname and score to the shared leaderboard** and press
-   **Save Score**. Look for **Published to the shared leaderboard**.
-4. Open the game in a different browser or on a different device. Select
-   **Everyone** and press **Refresh**. The score should appear if it ranks in
-   the top eight.
-5. Disconnect the network and try again. Device-only saving should still work;
-   online saving should report an error and offer **Retry Online**, not claim
-   success. Retrying a confirmed run does not create a duplicate.
+1. Open the deployed game. The main menu shows the top 3; **See all 20 scores**
+   opens the full Ward Honours page. A fresh database shows the 20 opening
+   house records led by TONY.
+2. Play a run and earn enough to beat the 20th place (the bar is shown under
+   the board as *"Beat X to place"*). At game over, a name box appears with
+   your projected rank. Type a nickname (eight letters/numbers/spaces maximum)
+   and press **SAVE**.
+3. Look for *"On the board at number N — everyone below shifts down"* and your
+   row highlighted **YOU** on the board beside it.
+4. Open the game in a different browser or on a different device and open the
+   full leaderboard. Your score should appear in rank order; the previous 20th
+   place should be gone.
+5. Disconnect the network and save a qualifying run. The score is kept locally
+   and the form offers **RETRY** without claiming success. Reconnect, press
+   RETRY, and the same run ID is sent — no duplicate is created.
 
-Players can always save locally without ticking the publishing box. Only the
-nickname, score, reached shift, server timestamp, and internal guest/run IDs
-are stored by this feature. Only the nickname, score, reached shift, timestamp,
-and run ID of the top eight entries are returned by the public API; guest IDs
+Only the nickname, score, reached shift, server timestamp, and internal
+guest/run IDs are stored. Only the nickname, score, reached shift, timestamp,
+and run ID of the top twenty entries are returned by the public API; guest IDs
 are not returned. Supabase may also retain its normal service/auth logs.
 
 ## Ranking Rules
 
 - **Twenty places, one board.** Highest score wins; ties use the further shift,
   then the earlier submission.
-- **Only qualifying runs are stored.** With all 20 places taken, the server
-  rejects anything at or below the 20th score with `BELOW_CUTOFF`, and the game
-  reports that calmly rather than as a failure. Nothing is written.
-- Runs must start at shift 1 so a later unlocked shift cannot inflate a ranking.
-  Later-shift runs are labelled *practice* and never submitted.
+- **Every run competes**, wherever it started — starting later earns no free
+  points, so there is no fairness reason to exclude those runs.
+- **A placing run pushes everyone below it down one place and the 20th falls
+  off.** The server enforces this with `ORDER BY … LIMIT 20`: with all places
+  taken it rejects anything at or below the 20th score with `BELOW_CUTOFF`, and
+  the game reports that calmly rather than as a failure. Nothing is written.
 - Each run has a unique ID; an identical retry returns the existing record.
 - A guest may submit one new run per minute, checked transactionally. Retries do
   not consume another slot.
@@ -187,7 +192,7 @@ delete from carecall_private.scores where is_seed = true;
 
 The private table has Row Level Security enabled and no direct permissions for
 browser users. Players cannot edit or delete scores. A read function returns
-only the top eight public records. A separate write function requires an
+only the top twenty public records. A separate write function requires an
 authenticated guest, validates values, stamps server time, checks the run ID,
 and applies a per-guest rate limit. Both functions use an empty `search_path`
 and narrowly scoped execution grants.
@@ -227,7 +232,7 @@ their leaderboard entries.
 
 | Symptom | Check |
 | --- | --- |
-| Score not on the board | It must beat the 20th place and start at shift 1. Open **SETUP** to check the connection. |
+| Score not on the board | It must beat the 20th place. The game-over screen shows how short it fell. Open **SETUP** to check the connection. |
 | "board filled up before this run landed" | Someone claimed the last place first. Not an error — play again. |
 | Status: LOCAL | No credentials found, so the opening board is shown. Fill `leaderboard-config.json`, or paste them into SETUP. |
 | Status: Needs attention | Read the message — it distinguishes missing tables, a rejected key, and a network failure. |
