@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  addLocalScore, createRunId, normalizeName, readLocalScores, SCORE_KEY, SCORE_LIMIT, validScore, type ScoreEntry,
+  addLocalScore, createRunId, normalizeName, readLocalScores, SCORE_KEY, validScore, type ScoreEntry,
 } from "../lib/highScores";
 
 export type { ScoreEntry } from "../lib/highScores";
@@ -56,12 +56,8 @@ export function useHighScores() {
     return { localRanked: next.some((item) => item.id === runId), localPersisted };
   }, []);
 
-  const qualifies = useCallback((score: number) => {
-    if (score <= 0) return false;
-    return scores.length < SCORE_LIMIT || score >= (scores[scores.length - 1]?.score ?? 0);
-  }, [scores]);
-
   const best = scores.length ? scores[0].score : 0;
 
-  return { scores, submit, qualifies, best };
+  // Local runs are a personal record and an offline fallback for the one board.
+  return { scores, submit, best };
 }

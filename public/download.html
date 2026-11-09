@@ -3,418 +3,617 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#070d14" />
-    <meta name="description" content="Download the GitHub-ready source package for CareCall Ward Rush." />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6E9A'/%3E%3Crect x='26' y='12' width='12' height='40' rx='3' fill='%23fff'/%3E%3Crect x='12' y='26' width='40' height='12' rx='3' fill='%23fff'/%3E%3C/svg%3E"
-    />
-    <title>Download — CareCall Ward Rush</title>
+    <meta name="theme-color" content="#05090f" />
+    <meta name="description" content="Download the GitHub-ready source package for CareCall Ward Rush — a hospital nurse-call arcade game." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6E9A'/%3E%3Crect x='26' y='12' width='12' height='40' rx='3' fill='%23fff'/%3E%3Crect x='12' y='26' width='40' height='12' rx='3' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <title>Release Package — CareCall Ward Rush</title>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #05090f;
-        --panel: rgba(11, 20, 32, 0.94);
-        --line: rgba(90, 190, 230, 0.18);
+        --void: #05090f;
+        --deep: #071019;
+        --surface: #0b1420;
+        --surface-2: #101d2b;
+        --line: rgba(90, 190, 230, 0.16);
+        --line-strong: rgba(90, 190, 230, 0.34);
         --cyan: #00aeef;
-        --cyan-soft: #67e8f9;
-        --green: #25e07a;
-        --amber: #ffb020;
-        --red: #ff2f4f;
-        --purple: #b061ff;
-        --text: #dbeafe;
-        --muted: #8aa0b4;
+        --cyan-lit: #67e8f9;
+        --emergency: #ff2f4f;
+        --patient: #25e07a;
+        --assist: #ffb020;
+        --keys: #b061ff;
+        --ink: #e6f2fb;
+        --muted: #8ba3b8;
+        --dim: #5d7488;
+        --display: "Chakra Petch", system-ui, sans-serif;
+        --mono: "Share Tech Mono", ui-monospace, monospace;
       }
 
       * { box-sizing: border-box; }
 
       html {
-        background: var(--bg);
-        scrollbar-color: rgba(120, 200, 235, 0.35) rgba(8, 14, 22, 0.9);
+        background: var(--void);
+        scrollbar-color: rgba(0, 174, 239, 0.45) rgba(7, 16, 25, 0.9);
         scrollbar-width: thin;
+        scroll-behavior: smooth;
       }
+      ::-webkit-scrollbar { width: 11px; height: 11px; }
+      ::-webkit-scrollbar-track { background: var(--deep); }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(0, 174, 239, 0.55), rgba(14, 110, 154, 0.55));
+        border: 3px solid var(--deep);
+        border-radius: 99px;
+      }
+      ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--cyan-lit), var(--cyan)); }
 
       body {
         margin: 0;
-        min-height: 100vh;
         min-height: 100dvh;
-        background:
-          radial-gradient(900px 500px at 15% -10%, rgba(0, 174, 239, 0.16), transparent 60%),
-          radial-gradient(800px 500px at 90% 10%, rgba(37, 224, 122, 0.08), transparent 55%),
-          linear-gradient(180deg, #071019 0%, #05090f 100%);
-        color: var(--text);
-        font-family: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
-        line-height: 1.5;
+        background: var(--void);
+        color: var(--ink);
+        font-family: var(--display);
+        line-height: 1.55;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
       }
 
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
+      /* ---------- layered ward atmosphere ---------- */
+      .atmos { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+      .atmos .grid {
+        position: absolute; inset: -10%;
         background-image:
-          linear-gradient(rgba(70, 180, 220, 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(70, 180, 220, 0.05) 1px, transparent 1px);
-        background-size: 34px 34px;
-        mask-image: radial-gradient(ellipse at 50% 20%, black 30%, transparent 80%);
+          linear-gradient(rgba(70, 180, 220, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(70, 180, 220, 0.055) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 78%);
+      }
+      .atmos .aurora {
+        position: absolute; inset: -30%;
+        background:
+          radial-gradient(46% 38% at 14% 8%, rgba(0, 174, 239, 0.24), transparent 62%),
+          radial-gradient(40% 34% at 88% 4%, rgba(176, 97, 255, 0.16), transparent 60%),
+          radial-gradient(52% 40% at 72% 92%, rgba(37, 224, 122, 0.11), transparent 64%),
+          radial-gradient(38% 30% at 24% 78%, rgba(255, 47, 79, 0.10), transparent 62%);
+        filter: blur(18px);
+        animation: drift 34s ease-in-out infinite alternate;
+      }
+      @keyframes drift {
+        0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
+        50%  { transform: translate3d(2%, 2%, 0) scale(1.06); }
+        100% { transform: translate3d(-1%, 1%, 0) scale(1.02); }
+      }
+      .atmos .grain {
+        position: absolute; inset: 0; opacity: 0.32; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
       }
 
-      ::-webkit-scrollbar { width: 10px; height: 10px; }
-      ::-webkit-scrollbar-track { background: rgba(8, 14, 22, 0.9); }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(120, 200, 235, 0.28);
-        border-radius: 99px;
-        border: 2px solid rgba(8, 14, 22, 0.9);
+      /* ---------- top bar ---------- */
+      header {
+        position: sticky; top: 0; z-index: 40;
+        backdrop-filter: blur(14px);
+        background: linear-gradient(180deg, rgba(5, 9, 15, 0.94), rgba(5, 9, 15, 0.72));
+        border-bottom: 1px solid var(--line);
       }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(120, 200, 235, 0.45); }
-
-      main {
-        position: relative;
-        width: min(920px, calc(100% - 32px));
-        margin: 0 auto;
-        padding: 48px 0 64px;
+      .bar {
+        width: min(1240px, calc(100% - 32px)); margin: 0 auto;
+        display: flex; align-items: center; gap: 14px;
+        padding: 11px 0; padding-top: max(11px, env(safe-area-inset-top));
       }
-
-      .panel {
-        background: linear-gradient(180deg, rgba(11, 20, 32, 0.96), rgba(6, 12, 20, 0.97));
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        box-shadow:
-          inset 0 1px 0 rgba(160, 230, 255, 0.08),
-          0 24px 70px rgba(0, 0, 0, 0.55);
-        padding: clamp(20px, 4vw, 40px);
+      .mark {
+        width: 36px; height: 36px; border-radius: 10px; flex: none;
+        display: grid; place-items: center;
+        background: linear-gradient(140deg, var(--cyan), #0e6e9a);
+        box-shadow: 0 0 22px rgba(0, 174, 239, 0.45);
+        color: #fff; font-weight: 700; font-size: 20px; line-height: 1;
       }
+      .wordmark { font-weight: 700; letter-spacing: 0.02em; font-size: 17px; white-space: nowrap; }
+      .wordmark i { font-style: normal; color: var(--cyan); }
+      .bar .spacer { flex: 1; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 7px;
+        min-height: 38px; padding: 0 13px; border-radius: 10px;
+        border: 1px solid var(--line); background: rgba(11, 20, 32, 0.8);
+        color: var(--muted); font: inherit; font-size: 11px; font-weight: 600;
+        letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none;
+        cursor: pointer; transition: color .16s, border-color .16s, background .16s, transform .1s;
+      }
+      .chip:hover { color: var(--cyan-lit); border-color: var(--line-strong); background: rgba(0, 174, 239, 0.09); }
+      .chip:active { transform: scale(0.96); }
+      .chip[data-on="true"] { color: var(--patient); border-color: rgba(37, 224, 122, 0.4); }
 
+      main { position: relative; z-index: 1; width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding-bottom: 80px; }
+
+      /* ---------- hero ---------- */
+      .hero { display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 40px; align-items: center; padding: 54px 0 40px; }
       .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.28em;
-        color: var(--cyan-soft);
-        text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 9px;
+        font-size: 10.5px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--cyan-lit);
+        border: 1px solid var(--line); border-radius: 99px; padding: 5px 13px; background: rgba(0, 174, 239, 0.06);
       }
+      .pip { width: 7px; height: 7px; border-radius: 99px; background: var(--patient); box-shadow: 0 0 10px var(--patient); animation: beat 1.7s ease-in-out infinite; }
+      @keyframes beat { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
-      .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 99px;
-        background: var(--green);
-        box-shadow: 0 0 12px var(--green);
-        animation: pulse 1.6s ease-in-out infinite;
+      h1 { margin: 18px 0 0; font-size: clamp(38px, 6.4vw, 74px); line-height: 0.98; letter-spacing: -0.01em; font-weight: 700; }
+      h1 i { font-style: normal; color: var(--cyan); }
+      h1 .sub { display: block; font-size: 0.42em; letter-spacing: 0.26em; color: var(--dim); font-weight: 600; margin-top: 16px; }
+      .lead { margin: 20px 0 0; max-width: 54ch; color: var(--muted); font-size: 15.5px; }
+      .lead b { color: var(--ink); font-weight: 600; }
+
+      .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 11px;
+        min-height: 56px; padding: 0 26px; border-radius: 14px; border: 1px solid transparent;
+        font: inherit; font-weight: 700; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase;
+        text-decoration: none; cursor: pointer; position: relative; overflow: hidden;
+        transition: transform .12s ease, filter .18s ease, box-shadow .18s ease;
       }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.35; }
+      .btn:active { transform: scale(0.975); }
+      .btn-primary { color: #04202b; background: linear-gradient(100deg, var(--cyan-lit), var(--patient)); box-shadow: 0 12px 40px -10px rgba(34, 211, 238, 0.7); }
+      .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 16px 48px -10px rgba(34, 211, 238, 0.85); }
+      .btn-primary::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.5) 50%, transparent 80%);
+        transform: translateX(-120%); animation: sheen 4.6s ease-in-out infinite;
       }
+      @keyframes sheen { 0%,62% { transform: translateX(-120%); } 82%,100% { transform: translateX(120%); } }
+      .btn-ghost { color: var(--cyan-lit); border-color: var(--line-strong); background: rgba(0, 174, 239, 0.07); }
+      .btn-ghost:hover { background: rgba(0, 174, 239, 0.15); }
+      .btn small { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; opacity: .72; text-transform: none; }
 
-      h1 {
-        margin: 12px 0 8px;
-        font-size: clamp(30px, 6vw, 52px);
-        line-height: 1.05;
-        letter-spacing: 0.02em;
-        color: white;
+      .facts { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-top: 26px; }
+      .fact { border: 1px solid var(--line); border-radius: 12px; background: rgba(11, 20, 32, 0.72); padding: 11px 13px; }
+      .fact dt { font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+      .fact dd { margin: 5px 0 0; font-family: var(--mono); font-size: 16px; color: var(--ink); overflow-wrap: anywhere; }
+
+      /* ---------- annunciator ---------- */
+      .annunciator {
+        position: relative; border-radius: 18px; overflow: hidden;
+        border: 1px solid var(--line-strong);
+        background: linear-gradient(180deg, #0d1a27, #070f18);
+        box-shadow: 0 40px 90px -30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(160,230,255,0.1);
       }
-
-      h1 span { color: var(--cyan); }
-
-      .lead {
-        margin: 0;
-        max-width: 62ch;
-        color: var(--muted);
-        font-size: 15px;
+      .annunciator::after {
+        content: ""; position: absolute; left: 0; right: 0; height: 26%; top: -26%;
+        background: linear-gradient(180deg, transparent, rgba(120, 220, 255, 0.09), transparent);
+        animation: scan 5s linear infinite; pointer-events: none;
       }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin: 28px 0 18px;
+      @keyframes scan { to { top: 110%; } }
+      .ann-head {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 13px 16px; border-bottom: 1px solid var(--line);
+        background: linear-gradient(90deg, rgba(0,174,239,0.13), transparent);
       }
+      .ann-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.19em; color: var(--cyan-lit); }
+      .ann-ward { font-family: var(--mono); font-size: 10.5px; color: var(--dim); letter-spacing: 0.08em; margin-top: 2px; }
+      .ann-count { text-align: right; }
+      .ann-count b { display: block; font-family: var(--mono); font-size: 27px; line-height: 1; color: #fff; }
+      .ann-count span { font-size: 9px; letter-spacing: 0.22em; color: var(--dim); }
+      .ann-body { padding: 11px; display: flex; flex-direction: column; gap: 8px; min-height: 306px; }
 
-      .button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        min-height: 52px;
-        padding: 0 22px;
-        border-radius: 14px;
-        border: 1px solid transparent;
-        font: inherit;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        text-decoration: none;
-        cursor: pointer;
-        transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      .call {
+        position: relative; border-radius: 9px; border-left: 4px solid var(--c);
+        background: rgba(0,0,0,0.46); padding: 9px 11px 10px;
+        animation: callIn .3s cubic-bezier(.22,1.2,.4,1) both;
       }
+      @keyframes callIn { from { opacity: 0; transform: translateY(9px) scale(.97); } to { opacity: 1; transform: none; } }
+      .call.urgent { box-shadow: 0 0 20px -3px var(--c); }
+      .call-top { display: flex; align-items: center; gap: 9px; }
+      .lamp { width: 10px; height: 10px; border-radius: 99px; background: var(--c); box-shadow: 0 0 11px var(--c); flex: none; animation: beat 1.15s ease-in-out infinite; }
+      .call.urgent .lamp { animation: strobe .42s steps(1,end) infinite; }
+      @keyframes strobe { 0%,49% { opacity: 1; } 50%,100% { opacity: .14; } }
+      .room { font-family: var(--mono); font-size: 15px; color: #fff; letter-spacing: -0.01em; }
+      .kind { font-size: 10.5px; font-weight: 700; letter-spacing: 0.13em; color: var(--c); }
+      .left { margin-left: auto; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+      .task { display: inline-block; margin-top: 6px; border-radius: 3px; background: rgba(255,255,255,0.09); padding: 1px 6px; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #ffd9a0; }
+      .track { margin-top: 8px; height: 4px; border-radius: 99px; background: rgba(255,255,255,0.09); overflow: hidden; }
+      .fill { height: 100%; border-radius: 99px; background: var(--c); transform-origin: left; }
+      .ann-clear { margin: auto; text-align: center; }
+      .ann-clear b { display: block; font-size: 13px; letter-spacing: 0.26em; color: var(--patient); }
+      .ann-clear span { font-size: 9.5px; letter-spacing: 0.2em; color: var(--dim); }
+      .ann-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 14px; border-top: 1px solid var(--line); background: rgba(0,0,0,0.3); }
+      .legend { display: inline-flex; align-items: center; gap: 6px; font-size: 9.5px; letter-spacing: 0.13em; color: var(--dim); }
+      .legend i { width: 8px; height: 8px; border-radius: 99px; background: var(--c); box-shadow: 0 0 8px var(--c); font-style: normal; }
 
-      .button:active { transform: scale(0.97); }
-      .button:hover { filter: brightness(1.1); }
+      /* ---------- sections ---------- */
+      section { padding: 34px 0; }
+      .sec-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+      .sec-head h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--cyan-lit); }
+      .sec-head p { margin: 0; color: var(--dim); font-size: 12.5px; }
+      .rule { flex: 1; height: 1px; min-width: 30px; background: linear-gradient(90deg, var(--line-strong), transparent); }
 
-      .button-primary {
-        color: #04202b;
-        background: linear-gradient(90deg, var(--cyan-soft), var(--green));
-        box-shadow: 0 0 34px rgba(34, 211, 238, 0.3);
+      .panel { border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(180deg, rgba(11,20,32,0.94), rgba(6,12,20,0.96)); box-shadow: inset 0 1px 0 rgba(160,230,255,0.06), 0 24px 60px -30px rgba(0,0,0,0.8); }
+
+      .contents { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 12px; }
+      .group { padding: 14px 15px; border-radius: 14px; border: 1px solid var(--line); background: rgba(11,20,32,0.7); transition: border-color .18s, transform .18s, background .18s; }
+      .group:hover { border-color: var(--line-strong); transform: translateY(-2px); background: rgba(16,29,43,0.85); }
+      .group-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .group-name { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--ink); }
+      .group-n { font-family: var(--mono); font-size: 12px; color: var(--c, var(--cyan)); }
+      .group-bar { height: 3px; border-radius: 99px; background: rgba(255,255,255,0.07); margin: 9px 0 10px; overflow: hidden; }
+      .group-bar i { display: block; height: 100%; background: var(--c, var(--cyan)); border-radius: 99px; box-shadow: 0 0 10px var(--c, var(--cyan)); }
+      .group ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+      .group li { font-family: var(--mono); font-size: 10.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .group li.more { color: var(--c, var(--cyan)); }
+
+      .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; counter-reset: s; }
+      .step { position: relative; padding: 18px 16px 16px; border-radius: 14px; border: 1px solid var(--line); background: rgba(11,20,32,0.7); overflow: hidden; }
+      .step::before {
+        counter-increment: s; content: counter(s, decimal-leading-zero);
+        position: absolute; right: 10px; top: 2px; font-family: var(--mono); font-size: 42px;
+        color: rgba(0,174,239,0.11); line-height: 1;
       }
+      .step h3 { margin: 0 0 6px; font-size: 12.5px; letter-spacing: 0.09em; color: var(--cyan-lit); }
+      .step p { margin: 0; font-size: 12.5px; color: var(--muted); }
 
-      .button-secondary {
-        color: var(--cyan-soft);
-        background: rgba(0, 174, 239, 0.08);
-        border-color: rgba(0, 174, 239, 0.28);
+      code, .mono { font-family: var(--mono); }
+      code.k { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.07); border-radius: 5px; padding: 1px 6px; font-size: 0.9em; color: var(--cyan-lit); }
+
+      .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; }
+      .note { border-radius: 14px; padding: 15px 17px; border: 1px solid; font-size: 12.5px; line-height: 1.6; }
+      /* Only the leading label is a block; inline emphasis must stay in the sentence. */
+      .note > b:first-child { display: block; margin-bottom: 5px; letter-spacing: 0.09em; font-size: 12px; }
+      .note b { font-weight: 700; }
+      .note.g { color: #bdf6d6; border-color: rgba(37,224,122,0.28); background: rgba(37,224,122,0.06); }
+      .note.a { color: #ffe2b3; border-color: rgba(255,176,32,0.28); background: rgba(255,176,32,0.06); }
+      .note.p { color: #e6d0ff; border-color: rgba(176,97,255,0.28); background: rgba(176,97,255,0.06); }
+      .note.r { color: #ffc6cf; border-color: rgba(255,47,79,0.28); background: rgba(255,47,79,0.06); }
+
+      .verify { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; }
+      .verify .lab { font-size: 9.5px; letter-spacing: 0.22em; color: var(--dim); text-transform: uppercase; }
+      .verify code { flex: 1 1 300px; font-size: 11.5px; color: var(--assist); overflow-wrap: anywhere; }
+
+      footer { border-top: 1px solid var(--line); margin-top: 26px; padding: 22px 0 0; color: var(--dim); font-size: 11.5px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+      footer a { color: var(--cyan-lit); text-decoration: none; border-bottom: 1px solid rgba(103, 232, 249, 0.35); transition: border-color .16s, color .16s; }
+      footer a:hover { color: #fff; border-bottom-color: var(--cyan-lit); }
+
+      /* Content is visible by default. JS only *arms* the reveal for sections that
+         start below the fold, so nothing can ever be stranded invisible. */
+      .reveal { transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1); }
+      .reveal.armed { opacity: 0; transform: translateY(18px); }
+      .reveal.armed.in { opacity: 1; transform: none; }
+      @media print { .reveal.armed { opacity: 1 !important; transform: none !important; } }
+
+      @media (max-width: 940px) {
+        .hero { grid-template-columns: 1fr; gap: 30px; padding-top: 34px; }
+        .facts { grid-template-columns: repeat(2, minmax(0,1fr)); }
       }
-
-      .meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-        margin: 22px 0;
-      }
-
-      .meta div {
-        background: rgba(0, 0, 0, 0.32);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 12px 14px;
-      }
-
-      .meta dt {
-        font-size: 10px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-
-      .meta dd {
-        margin: 4px 0 0;
-        font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 16px;
-        color: white;
-        overflow-wrap: anywhere;
-      }
-
-      .checksum {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 10px;
-        background: rgba(0, 0, 0, 0.32);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 12px 14px;
-      }
-
-      .checksum code {
-        flex: 1 1 260px;
-        font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 12px;
-        color: var(--amber);
-        overflow-wrap: anywhere;
-      }
-
-      .copy {
-        min-height: 40px;
-        padding: 0 14px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 176, 32, 0.3);
-        background: rgba(255, 176, 32, 0.08);
-        color: var(--amber);
-        font: inherit;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        cursor: pointer;
-      }
-
-      h2 {
-        margin: 34px 0 12px;
-        font-size: 13px;
-        letter-spacing: 0.24em;
-        text-transform: uppercase;
-        color: var(--cyan-soft);
-      }
-
-      ol {
-        margin: 0;
-        padding-left: 20px;
-        color: var(--text);
-      }
-
-      li { margin: 8px 0; }
-      li::marker { color: var(--cyan); font-weight: 700; }
-
-      code.inline {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 6px;
-        padding: 2px 6px;
-        font-family: "Share Tech Mono", ui-monospace, monospace;
-        font-size: 0.92em;
-        color: var(--cyan-soft);
-      }
-
-      .callouts {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-        margin-top: 24px;
-      }
-
-      .callout {
-        border-radius: 14px;
-        padding: 14px 16px;
-        font-size: 13px;
-        border: 1px solid;
-      }
-
-      .callout strong { display: block; margin-bottom: 4px; letter-spacing: 0.08em; }
-      .callout.green { color: #b8f5d2; border-color: rgba(37, 224, 122, 0.25); background: rgba(37, 224, 122, 0.06); }
-      .callout.amber { color: #ffe1ad; border-color: rgba(255, 176, 32, 0.25); background: rgba(255, 176, 32, 0.06); }
-      .callout.purple { color: #e4ccff; border-color: rgba(176, 97, 255, 0.25); background: rgba(176, 97, 255, 0.06); }
-
-      footer {
-        margin-top: 28px;
-        color: var(--muted);
-        font-size: 12px;
-        letter-spacing: 0.08em;
-      }
-
-      a { color: var(--cyan-soft); }
-
       @media (max-width: 560px) {
-        main { padding-top: 28px; }
-        .button { width: 100%; }
+        .bar { gap: 9px; }
+        .wordmark { font-size: 15px; }
+        .chip { padding: 0 10px; font-size: 10px; letter-spacing: 0.1em; }
+        .btn { width: 100%; }
+        .ann-body { min-height: 268px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+        html { scroll-behavior: auto; }
+        .reveal { opacity: 1; transform: none; }
       }
     </style>
   </head>
   <body>
+    <div class="atmos" aria-hidden="true">
+      <div class="aurora"></div><div class="grid"></div><div class="grain"></div>
+    </div>
+
+    <header>
+      <div class="bar">
+        <div class="mark" aria-hidden="true">✚</div>
+        <div class="wordmark">Care<i>Call</i> Ward<i>Rush</i></div>
+        <div class="spacer"></div>
+        <button id="sound" class="chip" data-on="true" type="button" aria-pressed="true" title="Annunciator call tones">
+          <span id="sound-icon">🔊</span><span id="sound-label">Sound on</span>
+        </button>
+        <a class="chip" href="./">Play ▸</a>
+      </div>
+    </header>
+
     <main>
-      <section class="panel">
-        <span class="eyebrow"><span class="dot"></span> GitHub-ready release</span>
-        <h1>Care<span>Call</span> Ward Rush</h1>
-        <p class="lead">
-          Download the complete source package, upload it to GitHub, and enable GitHub Pages.
-          The package includes the game, deployment workflow, tests, and optional shared high-score setup.
-        </p>
+      <div class="hero">
+        <div>
+          <span class="eyebrow"><span class="pip"></span> GitHub-ready release <span id="ver-chip">v1.0.0</span></span>
+          <h1>Care<i>Call</i><br />Ward Rush<span class="sub">NURSE CALL RESPONSE SIM</span></h1>
+          <p class="lead">
+            Fifty shifts. Three lives. Patients hit the call button and the <b>annunciator</b> lights up —
+            sprint the ward and reset every call before it times out. Download the complete source,
+            upload it to GitHub, and switch on Pages.
+          </p>
 
-        <div class="actions">
-          <a id="download" class="button button-primary" href="downloads/carecall-ward-rush-github.zip" download>
-            Download GitHub package
-          </a>
-          <a class="button button-secondary" href="./">Play the game</a>
+          <div class="cta">
+            <a id="download" class="btn btn-primary" href="downloads/carecall-ward-rush-github.zip" download>
+              ↓ Download package <small id="dl-size"></small>
+            </a>
+            <a class="btn btn-ghost" href="#upload">Upload steps</a>
+          </div>
+
+          <dl class="facts">
+            <div class="fact"><dt>Version</dt><dd id="version">—</dd></div>
+            <div class="fact"><dt>Files</dt><dd id="file-count">—</dd></div>
+            <div class="fact"><dt>ZIP size</dt><dd id="zip-size">—</dd></div>
+            <div class="fact"><dt>Unpacked</dt><dd id="raw-size">—</dd></div>
+          </dl>
         </div>
 
-        <dl class="meta">
-          <div>
-            <dt>Package</dt>
-            <dd id="file-name">carecall-ward-rush-github.zip</dd>
+        <div class="annunciator" role="img" aria-label="Animated preview of the in-game CareCall annunciator panel">
+          <div class="ann-head">
+            <div>
+              <div class="ann-title"><span class="pip"></span> CARECALL ANNUNCIATOR</div>
+              <div class="ann-ward" id="ward">ORIENTATION WING</div>
+            </div>
+            <div class="ann-count"><b id="active">00</b><span>ACTIVE</span></div>
           </div>
-          <div>
-            <dt>Version</dt>
-            <dd id="version">—</dd>
-          </div>
-          <div>
-            <dt>Files</dt>
-            <dd id="file-count">—</dd>
-          </div>
-          <div>
-            <dt>ZIP size</dt>
-            <dd id="zip-size">—</dd>
-          </div>
-        </dl>
-
-        <div class="checksum">
-          <code id="sha256">SHA-256 will appear here after the package manifest loads.</code>
-          <button id="copy" class="copy" type="button">Copy SHA-256</button>
-        </div>
-
-        <h2>Upload to GitHub</h2>
-        <ol>
-          <li>Create a new GitHub repository.</li>
-          <li>Unzip the package and show hidden files so <code class="inline">.github</code>, <code class="inline">.gitignore</code>, and <code class="inline">.nvmrc</code> are visible.</li>
-          <li>Upload all files and folders inside the unzipped folder to the repository root.</li>
-          <li>Open <strong>Settings → Pages</strong> and set <strong>Source</strong> to <strong>GitHub Actions</strong>.</li>
-          <li>Wait for the <strong>Deploy to GitHub Pages</strong> workflow to finish.</li>
-        </ol>
-
-        <div class="callouts">
-          <div class="callout green">
-            <strong>Local scores included</strong>
-            The game saves each player’s top scores on their device without any extra setup.
-          </div>
-          <div class="callout amber">
-            <strong>Shared scores optional</strong>
-            To enable a leaderboard for everyone, follow <code class="inline">docs/HIGH_SCORES.md</code> after uploading.
-          </div>
-          <div class="callout purple">
-            <strong>Logo optional</strong>
-            Add <code class="inline">public/brand/logo.svg</code> or <code class="inline">public/brand/logo.png</code> before deploying.
+          <div class="ann-body" id="calls"></div>
+          <div class="ann-foot">
+            <span class="legend" style="--c: var(--emergency)"><i></i>EMERGENCY</span>
+            <span class="legend" style="--c: var(--patient)"><i></i>PATIENT</span>
+            <span class="legend" style="--c: var(--assist)"><i></i>ASSIST</span>
+            <span class="legend" style="--c: var(--keys)"><i></i>KEYS</span>
           </div>
         </div>
+      </div>
 
-        <footer>
-          Full instructions are included in <code class="inline">UPLOAD-TO-GITHUB.md</code>.
-          Do not upload <code class="inline">node_modules</code>, <code class="inline">dist</code>, or private <code class="inline">.env.local</code> files.
-        </footer>
+      <section class="reveal" id="inside">
+        <div class="sec-head">
+          <h2>Inside the package</h2><span class="rule"></span>
+          <p id="inside-note">Complete source — no build output, no dependencies, no secrets.</p>
+        </div>
+        <div class="contents" id="contents"></div>
       </section>
+
+      <section class="reveal" id="upload">
+        <div class="sec-head"><h2>Upload to GitHub</h2><span class="rule"></span><p>About two minutes.</p></div>
+        <div class="steps">
+          <div class="step"><h3>CREATE THE REPO</h3><p>On GitHub choose <b>New repository</b>. Name it <code class="k">carecall-ward-rush</code> and make it public.</p></div>
+          <div class="step"><h3>UNZIP &amp; SHOW HIDDEN</h3><p>Reveal dotfiles so <code class="k">.github</code>, <code class="k">.gitignore</code> and <code class="k">.nvmrc</code> are included.</p></div>
+          <div class="step"><h3>UPLOAD CONTENTS</h3><p>Drag <b>everything inside</b> the unzipped folder to the repo root — not the folder itself.</p></div>
+          <div class="step"><h3>ENABLE PAGES</h3><p><b>Settings → Pages → Source → GitHub Actions.</b> The workflow is already in the package.</p></div>
+          <div class="step"><h3>PLAY</h3><p>Watch <b>Actions</b> finish, then open <code class="k">username.github.io/repo/</code>.</p></div>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <div class="sec-head"><h2>Good to know</h2><span class="rule"></span></div>
+        <div class="notes">
+          <div class="note g"><b>SCORES WORK IMMEDIATELY</b>Each player's top eight runs save on their own device. No setup, no account.</div>
+          <div class="note a"><b>SHARED LEADERBOARD IS OPTIONAL</b>Press <b>SETUP</b> on the in-game score table and use <b>Connect &amp; Test</b>. It reads <code class="k">leaderboard-config.json</code> at runtime — no rebuild.</div>
+          <div class="note p"><b>YOUR LOGO GOES HERE</b>Drop <code class="k">public/brand/logo.svg</code> in before deploying and it appears on the nurses-station plaque.</div>
+          <div class="note r"><b>LEAVE THESE OUT</b><code class="k">node_modules</code>, <code class="k">dist</code> and <code class="k">.env.local</code> are already excluded. GitHub rebuilds them.</div>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <div class="sec-head"><h2>Verify your download</h2><span class="rule"></span><p>SHA-256</p></div>
+        <div class="panel verify">
+          <span class="lab">SHA-256</span>
+          <code id="sha256">Loading package manifest…</code>
+          <button id="copy" class="chip" type="button">Copy</button>
+        </div>
+      </section>
+
+      <footer>
+        <span>MIT licensed</span>
+        <span>Full guide: <code class="k">UPLOAD-TO-GITHUB.md</code></span>
+        <span>Leaderboard: <code class="k">docs/HIGH_SCORES.md</code></span>
+        <span class="spacer" style="flex:1"></span>
+        <a href="./">Play the game ▸</a>
+      </footer>
     </main>
 
     <script>
-      const manifestUrl = "downloads/package-manifest.json";
-      const shaElement = document.getElementById("sha256");
-      const copyButton = document.getElementById("copy");
-
-      function formatBytes(bytes) {
-        if (!Number.isFinite(bytes)) return "—";
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-      }
+      /* ---------------- manifest ---------------- */
+      const GROUP_COLORS = {
+        game: "var(--emergency)", ui: "var(--cyan)", app: "var(--cyan-lit)", deploy: "var(--patient)",
+        scores: "var(--keys)", tests: "var(--assist)", docs: "var(--muted)", assets: "var(--dim)",
+      };
+      const fmt = (b) => !Number.isFinite(b) ? "—" : b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(2) + " MB";
 
       async function loadManifest() {
         try {
-          const response = await fetch(manifestUrl, { cache: "no-store" });
-          if (!response.ok) throw new Error("Manifest unavailable");
-          const manifest = await response.json();
+          const r = await fetch("downloads/package-manifest.json", { cache: "no-store" });
+          if (!r.ok) throw new Error("no manifest");
+          const m = await r.json();
+          document.getElementById("version").textContent = m.version || "—";
+          document.getElementById("ver-chip").textContent = "v" + (m.version || "1.0.0");
+          document.getElementById("file-count").textContent = String(m.fileCount ?? "—");
+          document.getElementById("zip-size").textContent = fmt(m.zipBytes);
+          document.getElementById("raw-size").textContent = fmt(m.uncompressedBytes);
+          document.getElementById("dl-size").textContent = fmt(m.zipBytes);
+          if (m.downloadPath) document.getElementById("download").href = m.downloadPath;
+          if (m.sha256) document.getElementById("sha256").textContent = m.sha256;
 
-          document.getElementById("version").textContent = manifest.version || "—";
-          document.getElementById("file-count").textContent = String(manifest.fileCount ?? "—");
-          document.getElementById("zip-size").textContent = formatBytes(manifest.zipBytes);
-          document.getElementById("file-name").textContent = manifest.fileName || "carecall-ward-rush-github.zip";
-
-          if (manifest.downloadPath) {
-            document.getElementById("download").href = manifest.downloadPath;
-          }
-
-          if (manifest.sha256) {
-            shaElement.textContent = manifest.sha256;
-            copyButton.disabled = false;
+          const groups = m.contents || [];
+          if (groups.length) {
+            const max = Math.max(...groups.map((g) => g.bytes));
+            document.getElementById("contents").innerHTML = groups.map((g) => {
+              const shown = g.files.slice(0, 4).map((f) => "<li>" + f.replace(/[<>&]/g, "") + "</li>").join("");
+              const rest = g.files.length > 4 ? '<li class="more">+ ' + (g.files.length - 4) + " more</li>" : "";
+              return '<div class="group" style="--c:' + (GROUP_COLORS[g.id] || "var(--cyan)") + '">' +
+                '<div class="group-top"><span class="group-name">' + g.label + '</span><span class="group-n">' + g.count + "</span></div>" +
+                '<div class="group-bar"><i style="width:' + Math.max(8, (g.bytes / max) * 100) + '%"></i></div>' +
+                "<ul>" + shown + rest + "</ul></div>";
+            }).join("");
+          } else {
+            document.getElementById("inside-note").textContent = "Game engine, interface, deploy workflow, tests and guides.";
           }
         } catch {
-          shaElement.textContent = "Package manifest unavailable. The ZIP download still works.";
-          copyButton.disabled = true;
+          document.getElementById("sha256").textContent = "Manifest unavailable — the ZIP download still works.";
+          document.getElementById("contents").innerHTML =
+            '<div class="note a" style="grid-column:1/-1"><b>PACKAGE CONTENTS</b>Game engine, interface, GitHub Pages workflow, tests, SQL migration and setup guides.</div>';
         }
       }
 
-      copyButton.addEventListener("click", async () => {
-        const value = shaElement.textContent.trim();
-        if (!value || value.length < 32) return;
-        try {
-          await navigator.clipboard.writeText(value);
-          copyButton.textContent = "Copied";
-        } catch {
-          const range = document.createRange();
-          range.selectNodeContents(shaElement);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-          copyButton.textContent = "Selected";
+      document.getElementById("copy").addEventListener("click", async (e) => {
+        const btn = e.currentTarget, value = document.getElementById("sha256").textContent.trim();
+        if (value.length < 32) return;
+        try { await navigator.clipboard.writeText(value); btn.textContent = "Copied"; }
+        catch {
+          const r = document.createRange(); r.selectNodeContents(document.getElementById("sha256"));
+          const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected";
         }
-        setTimeout(() => { copyButton.textContent = "Copy SHA-256"; }, 1600);
+        setTimeout(() => { btn.textContent = "Copy"; }, 1600);
       });
+
+      /* ---------------- call tones ---------------- */
+      let audio = null, soundOn = true;
+      const TONES = {
+        emergency: [[880, 0], [880, .13], [1180, .26]],
+        patient:   [[660, 0], [880, .1]],
+        assist:    [[520, 0], [700, .11]],
+        keys:      [[760, 0], [560, .1]],
+      };
+      function tone(kind) {
+        if (!soundOn || !audio || audio.state !== "running") return;
+        const now = audio.currentTime;
+        for (const [freq, at] of TONES[kind]) {
+          const o = audio.createOscillator(), g = audio.createGain();
+          o.type = kind === "emergency" ? "square" : "sine";
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0, now + at);
+          g.gain.linearRampToValueAtTime(kind === "emergency" ? 0.05 : 0.035, now + at + 0.012);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + at + 0.11);
+          o.connect(g).connect(audio.destination);
+          o.start(now + at); o.stop(now + at + 0.13);
+        }
+      }
+      const soundBtn = document.getElementById("sound");
+      function armAudio() {
+        if (!soundOn) return;
+        try {
+          audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+          if (audio.state === "suspended") audio.resume();
+        } catch { /* no audio available */ }
+      }
+      ["pointerdown", "keydown"].forEach((ev) => window.addEventListener(ev, armAudio, { once: true }));
+      soundBtn.addEventListener("click", () => {
+        soundOn = !soundOn;
+        soundBtn.dataset.on = String(soundOn);
+        soundBtn.setAttribute("aria-pressed", String(soundOn));
+        document.getElementById("sound-icon").textContent = soundOn ? "🔊" : "🔇";
+        document.getElementById("sound-label").textContent = soundOn ? "Sound on" : "Muted";
+        if (soundOn) armAudio(); else if (audio) audio.suspend();
+      });
+
+      /* ---------------- live annunciator ---------------- */
+      const KINDS = [
+        { id: "emergency", label: "EMERGENCY", c: "var(--emergency)", life: 9,  weight: 2 },
+        { id: "patient",   label: "PATIENT CALL", c: "var(--patient)", life: 15, weight: 4 },
+        { id: "assist",    label: "NURSE ASSIST", c: "var(--assist)", life: 13, weight: 3 },
+        { id: "keys",      label: "KEYS", c: "var(--keys)", life: 12, weight: 2 },
+      ];
+      const WARDS = ["ORIENTATION WING", "MEDICAL WARD A", "SURGICAL WARD B", "HIGH DEPENDENCY", "CRITICAL WING"];
+      const TASKS = ["MEAL / DRINK", "TOILET ASSIST"];
+      const body = document.getElementById("calls");
+      const activeEl = document.getElementById("active");
+      const wardEl = document.getElementById("ward");
+      let live = [], seq = 0, wardIndex = 0;
+
+      function pickKind() {
+        const pool = KINDS.flatMap((k) => Array(k.weight).fill(k));
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+      function spawn() {
+        if (live.length >= 4) return;
+        const used = new Set(live.map((c) => c.room));
+        const free = Array.from({ length: 10 }, (_, i) => i + 1).filter((n) => !used.has(n));
+        if (!free.length) return;
+        const kind = pickKind();
+        live.push({
+          id: ++seq, kind, room: free[Math.floor(Math.random() * free.length)],
+          left: kind.life, life: kind.life,
+          task: kind.id === "patient" && Math.random() < 0.3 ? TASKS[Math.floor(Math.random() * TASKS.length)] : null,
+        });
+        tone(kind.id);
+        live.sort((a, b) => a.left / a.life - b.left / b.life);
+        paint();
+      }
+      function paint() {
+        activeEl.textContent = String(live.length).padStart(2, "0");
+        if (!live.length) {
+          body.innerHTML = '<div class="ann-clear"><b>ALL CLEAR</b><span>NO ACTIVE CALLS</span></div>';
+          return;
+        }
+        const existing = new Map([...body.children].filter((n) => n.dataset.id).map((n) => [n.dataset.id, n]));
+        if (body.querySelector(".ann-clear")) body.innerHTML = "";
+        for (const call of live) {
+          let node = existing.get(String(call.id));
+          const urgent = call.left / call.life < 0.32;
+          if (!node) {
+            node = document.createElement("div");
+            node.className = "call";
+            node.dataset.id = call.id;
+            node.style.setProperty("--c", call.kind.c);
+            node.innerHTML =
+              '<div class="call-top"><span class="lamp"></span><span class="room">RM' + call.room +
+              '</span><span class="kind">' + call.kind.label + '</span><span class="left"></span></div>' +
+              (call.task ? '<span class="task">' + call.task + "</span>" : "") +
+              '<div class="track"><div class="fill"></div></div>';
+            body.appendChild(node);
+          }
+          node.classList.toggle("urgent", urgent);
+          node.querySelector(".left").textContent = call.left.toFixed(1) + "s";
+          node.querySelector(".fill").style.transform = "scaleX(" + Math.max(0, call.left / call.life) + ")";
+          existing.delete(String(call.id));
+        }
+        for (const stale of existing.values()) stale.remove();
+        // keep DOM order matching urgency order
+        for (const call of live) {
+          const node = body.querySelector('[data-id="' + call.id + '"]');
+          if (node) body.appendChild(node);
+        }
+      }
+      let last = performance.now();
+      function tick(now) {
+        const dt = Math.min(0.1, (now - last) / 1000); last = now;
+        let changed = false;
+        for (const c of live) c.left -= dt;
+        const before = live.length;
+        live = live.filter((c) => c.left > 0);
+        if (live.length !== before) { changed = true; live.sort((a, b) => a.left / a.life - b.left / b.life); }
+        if (changed) paint(); else if (live.length) {
+          for (const c of live) {
+            const node = body.querySelector('[data-id="' + c.id + '"]');
+            if (!node) continue;
+            node.querySelector(".left").textContent = c.left.toFixed(1) + "s";
+            node.querySelector(".fill").style.transform = "scaleX(" + Math.max(0, c.left / c.life) + ")";
+            node.classList.toggle("urgent", c.left / c.life < 0.32);
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+      paint();
+      spawn();
+      setTimeout(spawn, 900);
+      setInterval(spawn, 2600);
+      setInterval(() => { wardIndex = (wardIndex + 1) % WARDS.length; wardEl.textContent = WARDS[wardIndex]; }, 11000);
+      requestAnimationFrame(tick);
+
+      /* ---------------- scroll reveals (progressive enhancement) ---------------- */
+      (function reveals() {
+        const items = [...document.querySelectorAll(".reveal")];
+        const showAll = () => items.forEach((el) => el.classList.add("in"));
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduced || typeof IntersectionObserver !== "function") return; // stay visible
+
+        const fold = innerHeight * 0.92;
+        const below = items.filter((el) => el.getBoundingClientRect().top > fold);
+        if (!below.length) return;
+        below.forEach((el) => el.classList.add("armed"));
+
+        const io = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+          }
+        }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+        below.forEach((el) => io.observe(el));
+
+        // Safety nets: never leave content hidden if observation stalls.
+        setTimeout(showAll, 4000);
+        addEventListener("beforeprint", showAll);
+        addEventListener("pagehide", showAll);
+      })();
 
       loadManifest();
     </script>

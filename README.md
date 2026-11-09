@@ -6,7 +6,7 @@ Built with React 19, TypeScript, Vite and Tailwind CSS v4. The simulation and al
 
 ## Release v1.0.0
 
-- **50 shifts** of procedurally scaled difficulty, 3 lives, combo scoring up to ×5, local top-8 high-score table and shift-unlock progress.
+- **50 shifts** of procedurally scaled difficulty, 3 lives, combo scoring up to ×5, a shared top-20 leaderboard and shift-unlock progress.
 - **Four call types** on the annunciator — emergency (red), patient (green), nurse assist (amber), keys (purple) — each with its own timer, sound and lamp behaviour.
 - **Task calls**: meal trays from the pantry slow you down; toilet assists need a walking-pace escort to the WC with a live countdown.
 - **Accident system**: a timed-out escort leaves a spill — grab the mop at the station, scrub it clean for points, or slip on it mid-sprint.
@@ -51,16 +51,34 @@ For step-by-step upload instructions, see [UPLOAD-TO-GITHUB.md](UPLOAD-TO-GITHUB
 
 ## Shared High Scores
 
-The existing **My Device** leaderboard keeps the top eight scores in the
-player's browser. An optional **Everyone** leaderboard now supports scores
-shared across players using Supabase. GitHub Pages continues hosting the game;
-Supabase stores the scores. Online publishing is opt-in and never replaces
-local scores.
+The main menu shows the **top three** with a *See all 20 scores* link through to a
+dedicated **Ward Honours** page (podium, places 4–20, board stats). That page
+returns to the menu from its header, its footer, or `Esc`.
+
+There is **one leaderboard: the top 20 of all players**, stored in Supabase.
+Any run that beats the 20th place is saved automatically once the player enters a
+name — no device/global switch and no opt-in tick box. GitHub Pages hosts the
+game; Supabase stores the scores.
+
+A fresh deployment opens with twenty seeded house scores led by **TONY** on
+248,650 (a run ending around shift 20), so the board is never empty. Real runs
+replace them from the bottom up.
 
 Follow [the shared leaderboard setup guide](docs/HIGH_SCORES.md) to run the
-included SQL migration, enable anonymous guest sign-ins, and set the two public
-connection variables in GitHub Actions. Without those settings the game works
-in local-only mode. No live database is included or created automatically.
+included SQL migration, enable anonymous guest sign-ins, and fill in
+`public/leaderboard-config.json`. Without those settings the game works in
+local-only mode. No live database is included or created automatically.
+
+**Connection is configured at runtime, not baked into the build.** The game reads
+`leaderboard-config.json` sitting next to `index.html`, so you can connect a
+database by editing that one file and refreshing — no rebuild required. There is
+also a **SETUP** button on the in-game score table with a **CONNECT & TEST** action
+that checks the database live and names the exact problem (missing tables, guest
+sign-ins disabled, rejected key, or network failure).
+
+The score table shows a live status indicator, and saving reports **SHARED** and
+**DEVICE** outcomes on separate lines so a local save is never mistaken for a
+published one.
 
 ## Deploying to GitHub Pages
 
@@ -198,7 +216,7 @@ A phone/tablet held in **portrait** is blocked by a rotate-the-device gate until
 
 ### Scoring
 
-Score scales with call priority, a speed bonus for time remaining, and a **combo multiplier** up to ×5 that resets on a missed call. Clearing a shift pays a completion bonus, a bonus per remaining life, and a perfect-shift bonus for zero misses. Every 10th shift grants an extra life. Top eight runs are saved to a local high-score table.
+Score scales with call priority, a speed bonus for time remaining, and a **combo multiplier** up to ×5 that resets on a missed call. Clearing a shift pays a completion bonus, a bonus per remaining life, and a perfect-shift bonus for zero misses. Every 10th shift grants an extra life. Runs that beat the 20th place are stored on the shared leaderboard.
 
 ## Controls
 
@@ -231,20 +249,22 @@ src/
     Annunciator.tsx    call panel (desktop + compact mobile variants)
     Hud.tsx            score, lives, combo, dash, shift progress
     Screens.tsx        start, pause, level complete, game over
+    ScoresPage.tsx     full top-20 ward honours page
     LandscapeGate.tsx  portrait-phone gate, blocks the app
   hooks/
     useDevice.ts       viewport / touch / orientation classification
-    useHighScores.ts   localStorage high scores + level progress
+    useHighScores.ts   personal run record + offline queue, level progress
     useSharedLeaderboard.ts  optional shared leaderboard loading
   lib/
-    highScores.ts      score validation, sorting, and run identifiers
+    highScores.ts      score validation, ranking, and run identifiers
+    seedScores.ts      the twenty opening house scores
     leaderboard.ts     Supabase guest sessions and score API
   utils/cn.ts          Tailwind class combiner
 index.html             HTML entry — viewport meta + PWA-ish tags
 vite.config.ts         Vite + React + Tailwind + singlefile plugins
 .github/workflows/deploy.yml   GitHub Pages deploy workflow
 scripts/package-release.mjs  creates the GitHub upload ZIP
-supabase/migrations/          one-time database setup SQL
+supabase/migrations/          database setup SQL (base + top-20 seed)
 docs/HIGH_SCORES.md           shared leaderboard setup and security notes
 tests/                        local score and database permission tests
 UPLOAD-TO-GITHUB.md           beginner-friendly GitHub upload guide

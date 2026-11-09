@@ -15,15 +15,33 @@ export interface ScoreSubmission {
 }
 
 export interface ScoreSaveResult {
-  localRanked: boolean;
+  /** The run was written to the shared leaderboard. */
+  stored: boolean;
+  /** 1-based position on the shared board, when known. */
+  rank: number | null;
+  /** Score was too low for the top 20 — not an error. */
+  belowCutoff: boolean;
+  /** Kept in this browser as a personal record / offline fallback. */
   localPersisted: boolean;
-  sharedSaved: boolean;
   error?: string;
 }
 
 export const SCORE_KEY = "carecall.scores.v1";
-export const SCORE_LIMIT = 8;
+export const SCORE_LIMIT = 20;
 export const MAX_SCORE = 10_000_000;
+
+/** Does this score earn a place on a board of `limit` entries? */
+export function qualifiesFor(scores: ScoreEntry[], score: number, limit = SCORE_LIMIT): boolean {
+  if (!Number.isFinite(score) || score <= 0) return false;
+  if (scores.length < limit) return true;
+  return score > (scores[limit - 1]?.score ?? 0);
+}
+
+/** 1-based rank this score would take, or null if it misses the cut. */
+export function rankFor(scores: ScoreEntry[], score: number, level: number, limit = SCORE_LIMIT): number | null {
+  const better = scores.filter((s) => s.score > score || (s.score === score && s.level > level)).length;
+  return better < limit ? better + 1 : null;
+}
 
 export function normalizeName(name: string): string {
   return name.toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim().replace(/ +/g, " ").slice(0, 8).trim() || "NURSE";

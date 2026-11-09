@@ -1,6 +1,5 @@
 import { CALL_META } from "../game/constants";
 import type { Hud } from "../game/engine";
-import type { ScoreEntry } from "../hooks/useHighScores";
 import type { SharedLeaderboardState } from "../hooks/useSharedLeaderboard";
 import type { ScoreSaveResult } from "../lib/highScores";
 import Leaderboard from "./Leaderboard";
@@ -66,14 +65,14 @@ function LegendTile({ kind, desc }: { kind: keyof typeof CALL_META; desc: string
 
 export function StartScreen({
   onStart,
-  scores,
+  onShowScores,
   shared,
   unlocked,
   startLevel,
   setStartLevel,
 }: {
   onStart: () => void;
-  scores: ScoreEntry[];
+  onShowScores: () => void;
   shared: SharedLeaderboardState;
   unlocked: number;
   startLevel: number;
@@ -177,7 +176,7 @@ export function StartScreen({
                 >
                   START SHIFT ▸
                 </button>
-                <Leaderboard localScores={scores} shared={shared} />
+                <Leaderboard shared={shared} limit={3} onExpand={onShowScores} />
               </div>
             </div>
           </div>
@@ -272,10 +271,11 @@ export function LevelCompleteScreen({ hud, onNext, countdown }: { hud: Hud; onNe
 
 export function GameOverScreen({
   hud,
-  scores,
   shared,
-  startLevel,
   qualifies,
+  rank,
+  practice,
+  highlightId,
   onSubmit,
   onRestart,
   onRetry,
@@ -283,11 +283,12 @@ export function GameOverScreen({
   victory,
 }: {
   hud: Hud;
-  scores: ScoreEntry[];
   shared: SharedLeaderboardState;
-  startLevel: number;
   qualifies: boolean;
-  onSubmit: (name: string, share: boolean) => Promise<ScoreSaveResult>;
+  rank: number | null;
+  practice: boolean;
+  highlightId: string | null;
+  onSubmit: (name: string) => Promise<ScoreSaveResult>;
   onRestart: () => void;
   onRetry: () => void;
   onMenu: () => void;
@@ -325,7 +326,13 @@ export function GameOverScreen({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               {hud.score > 0 && (
-                <ScoreEntryForm qualifies={qualifies} sharedConfigured={shared.configured} startLevel={startLevel} onSave={onSubmit} />
+                <ScoreEntryForm
+                  qualifies={qualifies}
+                  rank={rank}
+                  canSubmit={shared.configured}
+                  practice={practice}
+                  onSave={onSubmit}
+                />
               )}
               <button
                 onClick={onRetry}
@@ -349,7 +356,7 @@ export function GameOverScreen({
               </div>
               <div className="text-center text-[10px] tracking-widest text-slate-600">PRESS ENTER TO RETRY</div>
             </div>
-            <Leaderboard localScores={scores} shared={shared} />
+            <Leaderboard shared={shared} highlightId={highlightId} />
           </div>
         </div>
       </div>

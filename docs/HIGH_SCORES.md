@@ -1,12 +1,53 @@
 # Shared High Scores
 
-The game already stores its top eight scores on each player's device. That uses
-`localStorage`: it survives a refresh, but is not shared with other players and
-can disappear when browsing data is cleared.
+There is **one leaderboard: the top 20 of all players.** There is no
+device/global switch and no opt-in tick box. Any run that beats the 20th place is
+stored in Supabase automatically once the player types a name.
 
-The optional **Everyone** leaderboard stores submitted scores in Supabase, a
-hosted PostgreSQL database. The game itself stays on GitHub Pages or in your Divi
-iframe. GitHub Pages cannot run a database or accept score writes on its own.
+GitHub Pages hosts the game; Supabase stores the scores. Pages alone cannot
+accept score writes.
+
+Until Supabase is connected the board shows the bundled **opening scores** so a
+first deployment is never empty. Those same rows are seeded into the database by
+the migration, and real runs replace them from the bottom up.
+
+A local copy of the player's own runs is still kept in `localStorage` as a
+personal record and as an offline queue — it is never presented as a second
+leaderboard.
+
+## "It still says Saved on this device" — read this first
+
+If scores are not reaching Supabase, the game now tells you why. Open the score
+table and press **SETUP**. The status line and **CONNECT & TEST** button check the
+database immediately and name the exact problem.
+
+The three usual causes:
+
+1. **The site was never rebuilt after adding the GitHub variables.** They used to
+   be compiled into the app, so adding them changed nothing on an already-built
+   site. **This no longer applies** — configuration is now read at runtime. Edit
+   `leaderboard-config.json` next to `index.html`, or use SETUP, and refresh.
+2. **The SQL migration was not run.** SETUP reports *"The database tables are
+   missing"* and names the file to run.
+3. **Anonymous Sign-Ins are disabled.** SETUP reports it and points at the toggle.
+
+Two other things that look like failures but are correct:
+
+- **Publishing is a choice.** The *Publish to the shared leaderboard* box must be
+  ticked. Once a connection is proven it defaults to on, and your choice is
+  remembered. The result is reported on two separate lines — **SHARED** and
+  **DEVICE** — so a local save is never mistaken for a published one.
+- **Runs must start at shift 1** to be comparable. Starting at a later unlocked
+  shift is a practice run and stays device-only.
+
+## Fastest setup — the in-game SETUP panel
+
+1. Open the game, find the score table, press **SETUP**.
+2. Paste your **Project URL** and **publishable key**.
+3. Press **CONNECT & TEST**. It reports success or the precise fix.
+
+This stores the settings **in your browser only**, which is ideal for testing.
+To turn the leaderboard on for every player, use `leaderboard-config.json` below.
 
 ## 1. Create the database
 
@@ -14,9 +55,14 @@ iframe. GitHub Pages cannot run a database or accept score writes on its own.
 2. Choose the region appropriate for your players. Check the current plan,
    usage limits, and backup options before relying on it for a public release.
 3. Open **SQL Editor**, then **New query**.
-4. Open `supabase/migrations/202611070001_carecall_leaderboard.sql` from this
-   project in a text editor. Paste its full contents into the SQL Editor and
-   click **Run**. This is a one-time setup; re-running this script is safe.
+4. Run **both** migration files in order, pasting each into the editor and
+   clicking **Run**:
+   1. `supabase/migrations/202611070001_carecall_leaderboard.sql`
+   2. `supabase/migrations/202611080001_carecall_top20_seed.sql`
+
+   The second raises the board to 20 places, stores only qualifying runs, and
+   seeds the opening scores. Both are safe to re-run; neither duplicates or
+   overwrites real player scores.
 5. Under **Authentication**, find **Sign In / Providers** (sometimes called
    **Providers**) and enable **Anonymous Sign-Ins**.
 
@@ -35,20 +81,41 @@ the project's API key settings. Older projects' legacy **anon** keys also work.
 secret. Only a public/publishable key belongs there. The migration's database
 permissions, not hiding the public key, protect the underlying table.
 
-## 3. Connect the GitHub Pages release
+## 3. Connect the deployed site (no rebuild needed)
 
-1. In your GitHub repository, open **Settings > Secrets and variables > Actions**.
-2. Select **Variables**, then **New repository variable**.
-3. Add `VITE_SUPABASE_URL` with your Project URL.
-4. Add `VITE_SUPABASE_PUBLISHABLE_KEY` with your publishable key.
-5. Push the updated project to `main`, or open **Actions > Deploy to GitHub
-   Pages > Run workflow** and run it on `main`.
+Edit **`public/leaderboard-config.json`** in your repository:
 
-The workflow already passes these two variables to Vite. A rebuild is required
-after changing them; refreshing the old website is not enough.
+```json
+{
+  "url": "https://YOUR-PROJECT.supabase.co",
+  "key": "sb_publishable_xxxxxxxxxxxxxxxxxxxx"
+}
+```
 
-Leave both variables unset to keep a device-only game. Old local scores and
-unlocked shifts are preserved. Nothing uploads automatically.
+Commit it. The Pages workflow redeploys, and the game fetches this file **at
+runtime** with caching disabled — so a hard refresh picks it up. You can also
+edit the deployed `leaderboard-config.json` directly on your host and refresh,
+with no build step at all.
+
+This is the recommended path because it works with a prebuilt package and cannot
+be defeated by a stale bundle.
+
+### Optional: build-time variables
+
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are still supported as a
+fallback, set under **Settings > Secrets and variables > Actions > Variables**.
+They are baked in at build time, so they need a rebuild to take effect. The
+runtime file and the SETUP panel both take priority over them.
+
+Configuration is resolved in this order:
+
+1. SETUP panel override saved in this browser
+2. `?supabase_url=…&supabase_key=…` query parameters
+3. `leaderboard-config.json` next to `index.html`
+4. `VITE_*` build variables
+
+Leave everything empty to keep a device-only game. Old local scores and unlocked
+shifts are preserved. Nothing uploads automatically.
 
 ## 4. Test locally (optional)
 
@@ -79,16 +146,42 @@ are not returned. Supabase may also retain its normal service/auth logs.
 
 ## Ranking Rules
 
-- Shared runs must start at shift 1, so jumping to an unlocked later shift is
-  not mixed into the same leaderboard. Later-shift practice runs stay local.
-- Highest score wins; ties use highest shift, then earliest submission.
-- The shared database records submitted runs; only the top eight are displayed.
-- Each run has a unique ID. An identical retry returns the existing record.
-- A guest can submit one new run per minute. An idempotent retry does not use
-  another slot. This limit is checked transactionally in the database.
-- Network reads refresh on menu/game-over entry, on focus/reconnection, and once
-  per minute while those screens are visible. There is no polling during play.
-- Local scores are not silently uploaded or imported into the shared table.
+- **Twenty places, one board.** Highest score wins; ties use the further shift,
+  then the earlier submission.
+- **Only qualifying runs are stored.** With all 20 places taken, the server
+  rejects anything at or below the 20th score with `BELOW_CUTOFF`, and the game
+  reports that calmly rather than as a failure. Nothing is written.
+- Runs must start at shift 1 so a later unlocked shift cannot inflate a ranking.
+  Later-shift runs are labelled *practice* and never submitted.
+- Each run has a unique ID; an identical retry returns the existing record.
+- A guest may submit one new run per minute, checked transactionally. Retries do
+  not consume another slot.
+- A guest identity is created only when a qualifying run is actually saved —
+  never for reading the board and never for a score that misses the cut.
+- Reads refresh on menu/game-over entry, on focus/reconnection, and once a minute
+  while those screens are visible. There is no polling during play.
+
+## Opening Scores
+
+`src/lib/seedScores.ts` is the single source of truth, mirrored by the migration
+and checked by `tests/seed.test.ts`. Values come from the game's real scoring
+model (`npx tsx scripts/score-curve.ts`), so each entry sits in the plausible
+cumulative band for the shift it reached.
+
+| # | Name | Score | Shift |
+| --- | --- | --- | --- |
+| 1 | TONY | 248,650 | 20 |
+| 2 | MATRON | 231,480 | 19 |
+| 3 | NURSE JO | 214,905 | 19 |
+| … | … | … | … |
+| 20 | INTERN | 12,460 | 4 |
+
+TONY leads on a strong run ending around shift 20. To clear the house scores,
+delete the seeded rows in the SQL Editor:
+
+```sql
+delete from carecall_private.scores where is_seed = true;
+```
 
 ## Security and Fair Play
 
@@ -134,14 +227,19 @@ their leaderboard entries.
 
 | Symptom | Check |
 | --- | --- |
-| Everyone is disabled | Both build variables must be present; rebuild and redeploy. |
-| Empty leaderboard | Normal for a new database; submit a scoring run from shift 1. |
-| Database setup message | Run the migration in the same project as your URL/key. |
-| Online saving not enabled | Enable Anonymous Sign-Ins in Supabase Authentication. |
+| Score not on the board | It must beat the 20th place and start at shift 1. Open **SETUP** to check the connection. |
+| "board filled up before this run landed" | Someone claimed the last place first. Not an error — play again. |
+| Status: LOCAL | No credentials found, so the opening board is shown. Fill `leaderboard-config.json`, or paste them into SETUP. |
+| Status: Needs attention | Read the message — it distinguishes missing tables, a rejected key, and a network failure. |
+| Empty leaderboard | Run the second migration to seed the opening 20. |
+| "Database tables are missing" | Run the migration in the same project as your URL/key, then press RETEST. |
+| "Guest submissions are switched off" | Enable Anonymous Sign-Ins in Supabase Authentication. |
+| "Rejected the publishable key" | Copy the publishable key again; never use a secret or service-role key. |
 | Wait one minute | The server rejected a second new run inside the rate limit. |
-| Local save works, publish fails | Check network, project availability, anonymous auth limits, and CAPTCHA settings. |
+| Local save works, publish fails | Press RETRY ONLINE. The same run ID is reused, so no duplicate is created. |
 | Wrong game scores show up | Use a dedicated Supabase project; all sites pointing to this project share this board. |
 | Blocked browser storage | Local scores last for the session; guest sessions may not persist between visits. |
+| Config edit had no effect | Hard-refresh. If you changed `VITE_*` variables instead of the JSON file, a rebuild is required. |
 
 GitHub deployment publishes only `dist/`. This SQL script is supplied for you to
 run in Supabase; GitHub Actions does not create the database or store database

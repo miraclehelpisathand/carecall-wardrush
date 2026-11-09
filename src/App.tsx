@@ -3,6 +3,7 @@ import GameCanvas from "./components/GameCanvas";
 import Annunciator from "./components/Annunciator";
 import Hud from "./components/Hud";
 import { Banner, GameOverScreen, LevelCompleteScreen, Logo, PauseScreen, StartScreen } from "./components/Screens";
+import ScoresPage from "./components/ScoresPage";
 
 import { Engine, type Hud as HudData } from "./game/engine";
 import { sfx } from "./game/audio";
@@ -10,7 +11,7 @@ import { loadProgress, saveProgress, useHighScores } from "./hooks/useHighScores
 import { useDevice } from "./hooks/useDevice";
 import { useSharedLeaderboard } from "./hooks/useSharedLeaderboard";
 import LandscapeGate from "./components/LandscapeGate";
-import { createRunId, type ScoreSaveResult } from "./lib/highScores";
+import { createRunId, rankFor, type ScoreSaveResult } from "./lib/highScores";
 import { leaderboardError, submitSharedScore } from "./lib/leaderboard";
 
 type LockableScreen = Screen & {
@@ -69,28 +70,47 @@ export default function App() {
   const engine = engineRef.current;
 
   const [hud, setHud] = useState<HudData>(() => engine.snapshot());
-  const [screen, setScreen] = useState<"menu" | "game">("menu");
+  const [screen, setScreen] = useState<"menu" | "scores" | "game">("menu");
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(false);
   const [unlocked, setUnlocked] = useState(() => loadProgress());
   const [startLevel, setStartLevel] = useState(() => loadProgress());
   const [countdown, setCountdown] = useState(6);
-  const { scores, submit, qualifies } = useHighScores();
-  const shared = useSharedLeaderboard(screen === "menu" || hud.phase === "gameover");
+  const { scores, submit } = useHighScores();
+  const shared = useSharedLeaderboard(
+    screen === "menu" || screen === "scores" || hud.phase === "gameover",
+    scores,
+    screen,
+  );
   const run = useRef({ id: "", startLevel: 1 });
+  const [placedId, setPlacedId] = useState<string | null>(null);
 
-  const saveScore = useCallback(async (name: string, publish: boolean): Promise<ScoreSaveResult> => {
+  // One board for everyone. A run that beats the 20th place is stored automatically.
+  const rankedRun = run.current.startLevel === 1;
+  const projectedRank = rankedRun ? rankFor(shared.board, hud.score, hud.level) : null;
+  const qualifies = hud.phase === "gameover" && hud.score > 0 && projectedRank !== null;
+
+  const saveScore = useCallback(async (name: string): Promise<ScoreSaveResult> => {
     const entry = { runId: run.current.id, startLevel: run.current.startLevel, name, score: hud.score, level: hud.level };
     const local = submit(name, entry.score, entry.level, entry.runId);
-    if (!publish) return { ...local, sharedSaved: false };
-    try {
-      await submitSharedScore(entry);
-      void shared.refresh();
-      return { ...local, sharedSaved: true };
-    } catch (error) {
-      return { ...local, sharedSaved: false, error: leaderboardError(error) };
+    const fallbackRank = rankFor(shared.board, entry.score, entry.level);
+    const base = { stored: false, rank: null as number | null, belowCutoff: false, localPersisted: local.localPersisted };
+
+    if (entry.startLevel !== 1) return { ...base, rank: fallbackRank };
+    if (!shared.configured) {
+      return { ...base, rank: fallbackRank, error: "Leaderboard not connected. Open SETUP on the board to enable it." };
     }
-  }, [hud.score, hud.level, submit, shared.refresh]);
+    try {
+      const saved = await submitSharedScore(entry);
+      await shared.refresh();
+      setPlacedId(saved.id ?? entry.runId);
+      return { ...base, stored: true, rank: rankFor(shared.board, entry.score, entry.level) ?? fallbackRank };
+    } catch (error) {
+      const message = leaderboardError(error);
+      const belowCutoff = message.includes("did not reach the top");
+      return { ...base, belowCutoff, rank: belowCutoff ? null : fallbackRank, error: belowCutoff ? undefined : message };
+    }
+  }, [hud.score, hud.level, submit, shared]);
 
   const device = useDevice();
   const { handheld, desktop, touch, portrait } = device;
@@ -118,6 +138,7 @@ export default function App() {
       sfx.resume();
       sfx.ui();
       run.current = { id: createRunId(), startLevel: level };
+      setPlacedId(null);
       engine.startRun(level);
       setHud(engine.snapshot());
       setPaused(false);
@@ -145,12 +166,13 @@ export default function App() {
   nextRef.current = next;
 
   const togglePause = useCallback(() => {
+    if (screen !== "game") return;
     if (engine.phase === "complete" || engine.phase === "gameover") return;
     setPaused((p) => {
       if (!p) sfx.ui();
       return !p;
     });
-  }, [engine]);
+  }, [engine, screen]);
 
   // level complete -> save progress + auto advance
   useEffect(() => {
@@ -179,6 +201,7 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       if (el?.closest("input, textarea, select, button, [contenteditable='true']")) return;
+      if (screen === "scores") return;
       if (e.key === "Enter") {
         if (screen === "menu") start(startLevel);
         else if (engine.phase === "gameover") start(engine.level >= 50 ? 1 : engine.level);
@@ -218,7 +241,7 @@ export default function App() {
         <GameCanvas
           engine={engine}
           running={running}
-          ambient={screen === "menu"}
+          ambient={screen !== "game"}
           handheld={handheld}
           onHud={onHud}
           onPauseKey={togglePause}
@@ -288,11 +311,19 @@ export default function App() {
       {screen === "menu" && (
         <StartScreen
           onStart={() => start(startLevel)}
-          scores={scores}
+          onShowScores={() => { sfx.ui(); setScreen("scores"); }}
           shared={shared}
           unlocked={unlocked}
           startLevel={Math.min(startLevel, unlocked)}
           setStartLevel={setStartLevel}
+        />
+      )}
+      {screen === "scores" && (
+        <ScoresPage
+          shared={shared}
+          highlightId={placedId}
+          onBack={() => { sfx.ui(); setScreen("menu"); }}
+          onPlay={() => start(startLevel)}
         />
       )}
       {screen === "game" && paused && hud.phase !== "gameover" && hud.phase !== "complete" && (
@@ -304,10 +335,11 @@ export default function App() {
       {screen === "game" && hud.phase === "gameover" && (
         <GameOverScreen
           hud={hud}
-          scores={scores}
           shared={shared}
-          startLevel={run.current.startLevel}
-          qualifies={qualifies(hud.score)}
+          qualifies={qualifies}
+          rank={projectedRank}
+          practice={!rankedRun}
+          highlightId={placedId}
           victory={victory}
           onSubmit={saveScore}
           onRestart={() => start(1)}

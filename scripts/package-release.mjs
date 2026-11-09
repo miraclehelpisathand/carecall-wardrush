@@ -196,6 +196,31 @@ await mkdir(outDir, { recursive: true });
 const { buffer, uncompressedBytes } = await buildZip(files);
 await writeFile(zipPath, buffer);
 
+/** Group the real archive contents so the download page can show what is inside. */
+const GROUPS = [
+  { id: "game", label: "Game engine", match: (f) => f.startsWith("src/game/") },
+  { id: "ui", label: "Interface", match: (f) => f.startsWith("src/components/") || f.startsWith("src/hooks/") || f.startsWith("src/lib/") || f.startsWith("src/utils/") },
+  { id: "app", label: "App shell", match: (f) => f.startsWith("src/") },
+  { id: "deploy", label: "Deployment", match: (f) => f.startsWith(".github/") || ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "index.html", ".nvmrc", ".gitignore", ".env.example"].includes(f) },
+  { id: "scores", label: "Shared scores", match: (f) => f.startsWith("supabase/") || f.startsWith("public/leaderboard-config") },
+  { id: "tests", label: "Tests", match: (f) => f.startsWith("tests/") },
+  { id: "docs", label: "Guides", match: (f) => f.endsWith(".md") || f.startsWith("docs/") },
+  { id: "assets", label: "Assets & tools", match: () => true },
+];
+
+const contents = [];
+const claimed = new Set();
+for (const group of GROUPS) {
+  const members = files.filter((f) => !claimed.has(f) && group.match(f));
+  if (!members.length) continue;
+  let bytes = 0;
+  for (const f of members) {
+    claimed.add(f);
+    bytes += (await stat(path.join(root, f))).size;
+  }
+  contents.push({ id: group.id, label: group.label, count: members.length, bytes, files: members });
+}
+
 const sha256 = createHash("sha256").update(buffer).digest("hex");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const manifest = {
@@ -209,6 +234,7 @@ const manifest = {
   zipBytes: buffer.length,
   sha256,
   instructions: "UPLOAD-TO-GITHUB.md",
+  contents,
 };
 
 await writeFile(path.join(outDir, "SHA256SUMS.txt"), `${sha256}  ${zipName}\n`, "utf8");

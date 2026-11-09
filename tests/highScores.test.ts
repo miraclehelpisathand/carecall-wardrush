@@ -66,11 +66,12 @@ describe("high score records", () => {
     assert.equal(values[0].id, "c");
   });
 
-  it("keeps only the best eight entries", () => {
-    const scores = Array.from({ length: 10 }, (_, i) => ({ ...entry, score: i + 1 }));
-    assert.equal(parseScores(scores).length, 8);
-    assert.equal(parseScores(scores)[0].score, 10);
-    assert.equal(parseScores(scores)[7].score, 3);
+  it("keeps only the best twenty entries", () => {
+    const scores = Array.from({ length: 30 }, (_, i) => ({ ...entry, score: i + 1 }));
+    const parsed = parseScores(scores);
+    assert.equal(parsed.length, 20);
+    assert.equal(parsed[0].score, 30);
+    assert.equal(parsed[19].score, 11);
   });
 
   it("does not create duplicate local entries when an online request is retried", () => {
